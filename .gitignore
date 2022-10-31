@@ -1,5 +1,6 @@
 ### CUSTOM GITIGNORE ###
 *.csv
+notebooks/*.ipynb
 
 ### JS GITIGNORE ###
 # compiled output
