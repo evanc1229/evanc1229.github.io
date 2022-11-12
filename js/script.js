@@ -1,19 +1,30 @@
 // use for loading data, and initializing each page
 
-// import d3
-var d3 = await import("https://cdn.skypack.dev/d3@7"); 
-import("d3").catch((e) => {});
-console.log(d3.version);
-
-
-// basic template for importing from other local files
-var p1 = await import("./page1/page1.js");
-console.log(p1.default);
-
+import { Page1 } from "./page1/page1.js";
 
 // TODO: Load dataset
+async function loadData() {
+  console.log("Loading Data");
+  const avalanches = await d3.csv("data/avalanches.csv");
+  const map = await d3.json("data/map.geojson");
 
+  return {
+    avalanches:avalanches,
+    map:map,
+  };
+}
 
-// TODO: Initialize each of pages 1, 2, and 3 with dataset
+// Initialize each of pages 1, 2, and 3 with dataset
+const data = await loadData();
+const p1 = new Page1(data);
+p1.render();
 
+var globalState = {
+  data: data,
+  p1: p1
+};
 
+// store state globally for debugging
+window.globalState = globalState;
+
+console.log("DONE");

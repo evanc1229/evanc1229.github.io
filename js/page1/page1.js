@@ -1,7 +1,25 @@
+import { MainMap } from "./main_map.js";
+
 // coordinate tooltip.js, main_map.js, timeselect.js
-var d3 = await import("https://cdn.skypack.dev/d3@7"); 
-import("d3").catch((e) => {});
 
-var array = [1,2,3]
+class Page1 {
+  constructor(data) {
+    console.log("Init Page 1");
 
-export default array
+    this.data = data;
+  }
+
+  render() {
+    let mapDiv = d3
+      .select("body")
+      .append("div")
+      .attr("id", "map")
+      .style("height", "700px")
+      .style("width", "700px");
+
+    this.map = new MainMap(mapDiv, this.data);
+
+    this.map.render();
+  }
+}
+export { Page1 };
