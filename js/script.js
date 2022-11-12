@@ -3,15 +3,26 @@
 // import d3
 var d3 = await import("https://cdn.skypack.dev/d3@7"); 
 import("d3").catch((e) => {});
-console.log(d3.version);
 
 
 // basic template for importing from other local files
 var p1 = await import("./page1/page1.js");
-console.log(p1.default);
+
+// import timeselect
+var timeselect = await import("./shared/timeselect.js");
 
 
-// TODO: Load dataset
+// Load the data and begin global application state
+const globalApplicationState = {
+    avalancheData: null,
+    timeSelect: null
+};
+
+// Load the data
+d3.csv("./data/avalanches.csv").then((data) => {
+    globalApplicationState.avalancheData = data;
+    globalApplicationState.timeSelect = new timeselect.default(globalApplicationState);
+});
 
 
 // TODO: Initialize each of pages 1, 2, and 3 with dataset
