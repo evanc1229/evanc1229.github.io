@@ -3,10 +3,11 @@ import { MainMap } from "./main_map.js";
 // coordinate tooltip.js, main_map.js, timeselect.js
 
 class Page1 {
-  constructor(data) {
+  constructor(data, timeselect) {
     console.log("Init Page 1");
 
     this.data = data;
+    this.timeselect = timeselect;
   }
 
   render() {

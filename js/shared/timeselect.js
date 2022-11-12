@@ -1,8 +1,4 @@
 // time selection component in P1 and P2
-async function ImportD3() {
-    var d3 = await import("https://cdn.skypack.dev/d3@7");
-    import("d3").catch((e) => { });
-}
 
 /**
  *  This class creates a time selection component
@@ -19,7 +15,7 @@ class TimeSelect {
      * @param {int} width 
      * @param {int} height 
      */
-    constructor(globalApplicationState, x = 0, y = 0, width = 1000, height = 100) {
+    constructor(data, x = 0, y = 0, width = 1000, height = 100) {
         this.dimensions = this.x = {
             x: x,
             y: y,
@@ -31,8 +27,7 @@ class TimeSelect {
 
         this.margin = { top: 10, right: 10, bottom: 10, left: 10 };
         this.mode = { single: true, start: null, end: null };
-        this.globalApplicationState = globalApplicationState;
-        this.data = [...globalApplicationState.avalancheData];
+        this.data = data.avalanches;
 
         //////////////////////////////////////
         ////////Pre-process the data//////////
@@ -159,8 +154,9 @@ class TimeSelect {
                 .attr('id', 'timeselect-text')
                 .attr('font-size', '10px')
                 .attr('font-family', 'sans-serif')
+                .attr('font-weight', 'bold')
                 .attr('fill', 'black')
-                .text(`(Demonstration Purposes Only) Selection type: null , Start date: null, End date: null`)
+                .text(`(Demonstration Purposes Only) Click on a bar, then another bar`)
                 .raise();
 
         svg.on('click', (e) => {
@@ -257,4 +253,4 @@ class TimeSelect {
 
 
 }
-export default TimeSelect;
+export {TimeSelect};
