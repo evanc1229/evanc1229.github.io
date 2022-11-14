@@ -34,8 +34,10 @@ class MainMap {
         let coords = e.Coordinates.split(", ")
           .map((c) => parseFloat(c))
           .reverse();
+        let ids = e.id;
         // console.log(e)
         return {
+          id: ids,
           type: "Feature",
           properties: {},
           geometry: {
@@ -156,7 +158,8 @@ class MainMap {
       .attr("stroke-width", 0.3)
       .attr("fill", "crimson")
       .classed("single-avalanche", true)
-      .on("mouseover", (e) => {
+      .on("mouseover", (e,d) => {
+        console.log(d.id);
         let c = d3.select(e.target);
         c.transition()
           .duration("150")
@@ -167,7 +170,6 @@ class MainMap {
         let c = d3.select(e.target);
         c.transition().duration("150").attr("r", c.attr("fixed-r"));
       });
-
     // update circle and area positions on zoom
     const onZoom = () => {
       this.logMapState();
