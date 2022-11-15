@@ -1,5 +1,6 @@
 import { MainMap } from "./main_map.js";
 import {TimeSelect} from "../shared/timeselect.js"
+import { ToolTip } from "./tooltip.js";
 
 // coordinate tooltip.js, main_map.js, timeselect.js
 
@@ -9,6 +10,8 @@ class Page1 {
 
     this.data = data;
     this.timeselect = new TimeSelect(data);
+    this.tooltip = new ToolTip(data);
+    
   }
 
   render() {

@@ -34,8 +34,10 @@ class MainMap {
         let coords = e.Coordinates.split(", ")
           .map((c) => parseFloat(c))
           .reverse();
+        let ids = e.id;
         // console.log(e)
         return {
+          id: ids,
           type: "Feature",
           properties: {},
           geometry: {
@@ -149,6 +151,7 @@ class MainMap {
     //   .attr("stroke-width", 2.5);
 
     const nodeMouseOver = (e) => {
+      console.log(d.id);
       let c = d3.select(e.target);
       c.transition().duration("150").attr("r", 20);
 
