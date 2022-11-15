@@ -1,23 +1,27 @@
 // tooltip component in P1
 
+import * as utils from "../shared/utils.js";
+
 var leaflet = await import("https://cdn.skypack.dev/leaflet");
 import("leaflet").catch((e) => {});
 
 if (L === undefined) L = leaflet;
 
 class ToolTip{
-  constructor(data, width = 600, height = 600){
-    this.width = width;
-    this.height = height;
-
+  constructor(data){
+    this.dimensions = {};
     this.data = data.avalanches;
+  }
 
-    
+  render(div) {
+    this.div = div;
+    this.dimensions = utils.getDimensions(div);
+
     this.drawbubble();
     this.drawTable();
   }
 
-  drawbubble(){
+  drawbubble() {
     this.data.forEach(function(d){d.Width =parseInt(d.Width)});
     let data = [...this.data];
     let widthData = data.map(function(d){return d.Width});
@@ -37,11 +41,11 @@ class ToolTip{
         .domain([0,100])
         .range([400, 0]);
       
-      let svg2 = d3.select('body')
+      let svg2 = this.div
         .append('svg')
-        .attr('width', this.width)
-        .attr('height', this.height)
-        .attr('id', 'tooltip');
+        .attr('width', this.dimensions.width)
+        .attr('height', this.dimensions.height)
+        .attr('id', 'tooltip-svg');
       // Show the main vertical line
       svg2
       .append("line")
@@ -80,7 +84,8 @@ class ToolTip{
       .enter()
       .append("circle")
       .attr("cx",100)
-      .attr("cy", function(d){return(y(d.Width))/10+500})
+      // .attr("cy", d=>(y(d.Width))/10+500)
+      .attr("cy", (d,i)=>i*5)
       .attr("r", 4)
       .style("fill", "white")
       .attr("stroke", "black")
@@ -95,7 +100,7 @@ class ToolTip{
       this.data = this.data.filter(function(d){d.Region = "Ogden";})
       
       let columns = ['Region', 'Place', 'Trigger', 'Depth', 'Width', 'Vertical', 'Aspect', 'Elevation'];
-        let table = d3.select('body').append('table');
+        let table = this.div.append('table');
     
         let thead = table.append('thead');
         let tbody = table.append('tbody');
