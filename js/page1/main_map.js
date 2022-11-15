@@ -129,13 +129,13 @@ class MainMap {
       const point = map.latLngToLayerPoint(new L.LatLng(y, x));
       return this.stream.point(point.x, point.y);
     };
-
+    
     // define a d3 projection
     const projectToMapD3 = d3.geoTransform({ point: projectToMap });
     const pathCreator = d3.geoPath().projection(projectToMapD3);
 
     let incidentPoints = this.convert_points().features;
-
+    
     // let areas = d3.filter(
     //   this.data.map.features,
     //   (d) => d.geometry.type != "Point"
@@ -150,30 +150,23 @@ class MainMap {
     //   .attr("stroke", "black")
     //   .attr("stroke-width", 2.5);
 
-    const incidentNodes = g
-      .selectAll("circle")
-      .data(incidentPoints)
-      .join("circle")
-      .attr("stroke", "black")
-      .attr("stroke-width", 0.3)
-      .attr("fill", "crimson")
-      .classed("single-avalanche", true)
-      .on("mouseover", (e,d) => {
-        console.log(d.id);
-        let c = d3.select(e.target);
-        c.transition()
-          .duration("150")
-          .attr("r", 20);
-      })
-      .on("mouseout", (e)=>{
-        //reverse the action based on when we mouse off the the circle
-        let c = d3.select(e.target);
-        c.transition().duration("150").attr("r", c.attr("fixed-r"));
-      });
+    const nodeMouseOver = (e) => {
+      console.log(d.id);
+      let c = d3.select(e.target);
+      c.transition().duration("150").attr("r", 20);
+
+      // c.raise()
+    };
+
+    const nodeMouseOut = (e) => {
+      //reverse the action based on when we mouse off the the circle
+      let c = d3.select(e.target);
+      c.transition().duration("150").attr("r", c.attr("fixed-r"));
+    };
+
     // update circle and area positions on zoom
     const onZoom = () => {
       this.logMapState();
-
       this.calcCircleAttrs(incidentNodes, map);
       // areaPaths.attr("d", pathCreator);
     };
@@ -182,9 +175,21 @@ class MainMap {
       this.logMapState();
     };
 
-    onZoom();
+    const incidentNodes = g
+      .selectAll("circle")
+      .data(incidentPoints)
+      .join("circle")
+      .attr("stroke", "black")
+      .attr("stroke-width", 0.3)
+      .attr("fill", "crimson")
+      .classed("single-avalanche", true)
+      .on("mouseover", nodeMouseOver)
+      .on("mouseout", nodeMouseOut);
+
     map.on("drag", onDrag);
     map.on("zoomend", onZoom);
+
+    onZoom();
   }
 
   logMapState() {

@@ -63,14 +63,18 @@ class TimeSelect {
 
         this.draw();
 
+        // TODO: initialize new Event "timeUpdate" (or something like that)
+
     }
+
+    // TODO: add function for registering new listeners to "timeUpdate"
 
 
     /**
      * This method draws the time selection component on the page.
      */
     draw() {
-        let data = [...this.data];
+        // let data = [...this.data];
         //Creating svg to hold the time selection component
         let svg = d3.select('body')
             .append('svg')
@@ -217,6 +221,8 @@ class TimeSelect {
             text
                 .text(`(Demonstration Purposes Only) Selection type: ${this.dates.date1 && this.dates.date2 ? 'range' : 'single'} , Start date: ${this.dates.date1 ? this.dates.date1.toDateString() : 'null'}, End date: ${this.dates.date2 ? this.dates.date2.toDateString() : 'null'}`)
             console.log(this.getDates());
+            
+            // TODO: dispatch events, listeners should call .getDates() and update themselves
         });
 
     }
