@@ -18,7 +18,7 @@ class MainMap {
       maxZoom: 12,
     };
   }
-
+  
   /**
    * Converts coordinates of avalanches to geojson points
    * @returns
