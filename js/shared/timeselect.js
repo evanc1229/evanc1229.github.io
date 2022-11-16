@@ -95,10 +95,10 @@ class TimeSelect {
         selectors
             .append('line')
             .attr('id', 'ts-line1')
-            .attr('x1', 0)
-            .attr('y1', 0)
-            .attr('x2', 0)
-            .attr('y2', this.dimensions.height)
+            .attr('x1', this.dimensions.x)
+            .attr('y1', this.dimensions.y)
+            .attr('x2', this.dimensions.x)
+            .attr('y2', this.dimensions.y + this.dimensions.height)
             .attr('stroke', 'grey')
             .attr('stroke-width', 4)
             .attr('visibility', 'hidden');
@@ -106,10 +106,10 @@ class TimeSelect {
         selectors
             .append('line')
             .attr('id', 'ts-line2')
-            .attr('x1', 0)
-            .attr('y1', 0)
-            .attr('x2', 0)
-            .attr('y2', this.dimensions.height)
+            .attr('x1', this.dimensions.x)
+            .attr('y1', this.dimensions.y)
+            .attr('x2', this.dimensions.x)
+            .attr('y2', this.dimensions.y + this.dimensions.height)
             .attr('stroke', 'grey')
             .attr('stroke-width', 4)
             .attr('visibility', 'hidden');
@@ -169,8 +169,8 @@ class TimeSelect {
                 // If it is, when clicked we need to start moving select 1
                 if (!line1.classed('moving')) {
                     line1
-                        .attr('x1', e.offsetX)
-                        .attr('x2', e.offsetX)
+                        .attr('x1', this.dimensions.x + e.offsetX)
+                        .attr('x2', this.dimensions.x + e.offsetX)
                         .attr('visibility', 'visible')
                         .classed('moving', true);
                 }
@@ -179,7 +179,7 @@ class TimeSelect {
                     line1
                         .classed('moving', false)
                         .classed('active', true);
-                    this.dates.date1 = xScale.invert(e.offsetX - this.dimensions.x);
+                    this.dates.date1 = xScale.invert(this.dimensions.x + e.offsetX - this.dimensions.x);
                 }
             }
             else if (line1.classed('active') && !line2.classed('active')) {
@@ -187,25 +187,25 @@ class TimeSelect {
                 // If select 1 is active, but select 2 is not, when clicked we need to start moving select 2
                 if (!line2.classed('moving')) {
                     line2
-                        .attr('x1', e.offsetX)
-                        .attr('x2', e.offsetX)
+                        .attr('x1', this.dimensions.x + e.offsetX)
+                        .attr('x2', this.dimensions.x + e.offsetX)
                         .attr('visibility', 'visible')
                         .classed('moving', true);
                 }
-                else if (e.offsetX > line1.attr('x1')) {
+                else if (this.dimensions.x + e.offsetX > line1.attr('x1')) {
                     // If select 2 is already moving, stop and and grab the date
                     line2
                         .classed('moving', false)
                         .classed('active', true)
-                    this.dates.date2 = xScale.invert(e.offsetX - this.dimensions.x);
+                    this.dates.date2 = xScale.invert(this.dimensions.x + e.offsetX - this.dimensions.x);
                 }
-                else if (e.offsetX < line1.attr('x1')) {
+                else if (this.dimensions.x + e.offsetX < line1.attr('x1')) {
                     // If select 2 is to the left of select 1, swap them
                     line2
                         .classed('moving', false)
                         .classed('active', true)
                     this.dates.date2 = this.dates.date1;
-                    this.dates.date1 = xScale.invert(e.offsetX - this.dimensions.x);
+                    this.dates.date1 = xScale.invert(this.dimensions.x + e.offsetX - this.dimensions.x);
                 }
                 else {
                     // If select 2 and select 1 are the same then throw and error and do nothing
@@ -246,20 +246,19 @@ class TimeSelect {
             // TODO: dispatch events, listeners should call .getDates() and update themselves
         });
 
-        //Allows Selection elements to move when mouse is dragged and they are active
+        //Allows Selection elements to move when mouse is dragged and they are in the moving state
         svg.on('mousemove', (e) => {
             if (d3.select('#ts-line1').classed('moving')) {
                 d3.select('#ts-line1')
-                    .attr('x1', e.offsetX)
-                    .attr('x2', e.offsetX);
+                    .attr('x1', this.dimensions.x + e.offsetX)
+                    .attr('x2', this.dimensions.x + e.offsetX);
             }
             else if (d3.select('#ts-line2').classed('moving')) {
                 d3.select('#ts-line2')
-                    .attr('x1', e.offsetX)
-                    .attr('x2', e.offsetX);
+                    .attr('x1', this.dimensions.x + e.offsetX)
+                    .attr('x2', this.dimensions.x + e.offsetX);
             }
         });
-
     }
 
     /**
