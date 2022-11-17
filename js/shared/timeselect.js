@@ -15,7 +15,7 @@ class TimeSelect {
      * @param {int} width 
      * @param {int} height 
      */
-    constructor(data) {
+    constructor(data, verbose=false) {
         // this.dimensions = dimensions;
         // this.dimensions = this.x = {
         //     x: x,
@@ -23,6 +23,7 @@ class TimeSelect {
         //     width: width,
         //     height: height
         // };
+        this.verbose = verbose
 
         this.dimensions = {}
 
@@ -68,6 +69,11 @@ class TimeSelect {
 
     }
 
+    log(...msg) {
+        if (this.verbose)
+        console.log(msg)
+    }
+
     // TODO: add function for registering new listeners to "timeUpdate"
 
 
@@ -77,7 +83,7 @@ class TimeSelect {
      * @param {d3.Selection} div 
      */
      render(div) {
-        console.log(div)
+        this.log(div)
         this.dimensions = utils.getDimensions(div)
 
         // let data = [...this.data];
@@ -250,7 +256,7 @@ class TimeSelect {
             }
             text
                 .text(`(Demonstration Purposes Only) Selection type: ${this.dates.date1 && this.dates.date2 ? 'range' : 'single'} , Start date: ${this.dates.date1 ? this.dates.date1.toDateString() : 'null'}, End date: ${this.dates.date2 ? this.dates.date2.toDateString() : 'null'}`)
-            console.log(this.getDates());
+            this.log(this.getDates());
 
             // TODO: dispatch events, listeners should call .getDates() and update themselves
         });

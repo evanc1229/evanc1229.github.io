@@ -8,9 +8,10 @@ import("leaflet").catch((e) => { });
 if (L === undefined) L = leaflet;
 
 class ToolTip{
-  constructor(data){
+  constructor(data, verbose=false){
     this.dimensions = {};
     this.data = data.avalanches;
+    this.verbose = verbose
   }
 
   render(div) {
@@ -19,6 +20,11 @@ class ToolTip{
 
     this.drawbubble();
     
+  }
+
+  log(...msg) {
+    if (this.verbose)
+      console.log(msg)
   }
 
   drawbubble() {
@@ -35,21 +41,21 @@ class ToolTip{
     Array.from(['Width', 'Vertical']).reduce((obj, k) => {
       let dk = data.map(d => parseFeetFromString(d[k]))
       dk.sort(d3.ascending)
-      console.log(dk)
+      this.log(dk)
       obj[k] = {
         q1: d3.quantile(dk, .25)/5,
         q2: d3.quantile(dk, .5)/5,
         q3: d3.quantile(dk, .75)/5
       }
-      console.log(obj[k].q1)
-      console.log(obj[k].q2)
-      console.log(obj[k].q3)
+      this.log(obj[k].q1)
+      this.log(obj[k].q2)
+      this.log(obj[k].q3)
       let interQuantileRange= obj[k].q3-obj[k].q1
       let min = obj[k].q1 -1.5 *interQuantileRange
       let max=  obj[k].q3 + 1.5 * interQuantileRange
-      console.log(interQuantileRange)
-      console.log(min)
-      console.log(max)
+      this.log(interQuantileRange)
+      this.log(min)
+      this.log(max)
       
 
       

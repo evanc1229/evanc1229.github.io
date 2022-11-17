@@ -47,9 +47,9 @@ class Page1 {
     };
 
     // initialize components
-    this.timeselect = new TimeSelect(this.data);
-    this.tooltip = new ToolTip(this.data);
-    this.map = new MainMap(this.data);
+    this.timeselect = new TimeSelect(this.data, false);
+    this.tooltip = new ToolTip(this.data, false);
+    this.map = new MainMap(this.data, false);
   }
 
   render() {

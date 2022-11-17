@@ -7,12 +7,12 @@ import * as utils from "../shared/utils.js";
 if (L === undefined) L = leaflet;
 
 class MainMap {
-  constructor(data, verbose) {
-    console.log("Init Main Map");
+  constructor(data, verbose = false) {
+    this.log("Init Main Map");
     this.dimensions = {};
 
     this.data = data;
-    this.verbose = verbose === undefined ? false : verbose;
+    this.verbose = verbose;
 
     this.init = {
       view: [40.593, -110.984],
@@ -23,7 +23,13 @@ class MainMap {
 
     this.mapId = "map";
   }
-  
+
+  log(...msg) {
+    if (this.verbose)
+      console.log(msg)
+  }
+
+
   /**
    * Converts coordinates of avalanches to geojson points
    * @returns {d3.GeoPermissibleObjects}
@@ -40,7 +46,7 @@ class MainMap {
           .map((c) => parseFloat(c))
           .reverse();
         let ids = e.id;
-        // console.log(e)
+        // this.log(e)
         return {
           id: ids,
           type: "Feature",
@@ -130,12 +136,12 @@ class MainMap {
     this.div = div;
     this.dimensions = utils.getDimensions(div);
 
-    console.log(this.dimensions)
+    this.log(this.dimensions);
     this.mapDiv = div
       .append("div")
       .attr("id", this.mapId)
       .style("width", `${this.dimensions.width}px`)
-      .style("height", `${this.dimensions.height}px`)
+      .style("height", `${this.dimensions.height}px`);
 
     let map = this.init_map("terrain1");
     let overlay = this.init_overlay(map);
@@ -170,7 +176,7 @@ class MainMap {
     //   .attr("stroke-width", 2.5);
 
     const nodeMouseOver = (e) => {
-      console.log(d.id);
+      this.log(e.id);
       let c = d3.select(e.target);
       c.transition().duration("150").attr("r", 20);
 
@@ -219,7 +225,7 @@ class MainMap {
       bounds: map.getBounds(),
       center: map.getCenter(),
     };
-    console.log(mapState);
+    this.log(mapState);
   }
 
   /**
