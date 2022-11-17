@@ -63,8 +63,6 @@ class TimeSelect {
 
         this.data = this.data.sort((a, b) => a.date - b.date);
 
-        // this.draw();
-
         // TODO: initialize new Event "timeUpdate" (or something like that)
 
     }
@@ -111,9 +109,9 @@ class TimeSelect {
             .append('line')
             .attr('id', 'ts-line1')
             .attr('x1', this.dimensions.x)
-            .attr('y1', this.dimensions.y)
+            .attr('y1', 0)
             .attr('x2', this.dimensions.x)
-            .attr('y2', this.dimensions.y + this.dimensions.height)
+            .attr('y2', this.dimensions.y )
             .attr('stroke', 'grey')
             .attr('stroke-width', 4)
             .attr('visibility', 'hidden');
@@ -122,13 +120,12 @@ class TimeSelect {
             .append('line')
             .attr('id', 'ts-line2')
             .attr('x1', this.dimensions.x)
-            .attr('y1', this.dimensions.y)
+            .attr('y1', 0)
             .attr('x2', this.dimensions.x)
-            .attr('y2', this.dimensions.y + this.dimensions.height)
+            .attr('y2', this.dimensions.y)
             .attr('stroke', 'grey')
             .attr('stroke-width', 4)
             .attr('visibility', 'hidden');
-
 
         //Creating scales
         let xScale = d3.scaleTime()
