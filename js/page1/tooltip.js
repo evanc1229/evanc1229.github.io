@@ -3,7 +3,7 @@
 import * as utils from "../shared/utils.js";
 
 var leaflet = await import("https://cdn.skypack.dev/leaflet");
-import("leaflet").catch((e) => {});
+import("leaflet").catch((e) => { });
 
 if (L === undefined) L = leaflet;
 
@@ -18,127 +18,113 @@ class ToolTip{
     this.dimensions = utils.getDimensions(div);
 
     this.drawbubble();
-    this.drawTable();
+    
   }
 
   drawbubble() {
-    this.data.forEach(function(d){d.Width =parseInt(d.Width)});
-    let data = [...this.data];
-    let widthData = data.map(function(d){return d.Width});
-      
-    let center =100;
-    let width2 = 100;
-      let sortedWidth = widthData.sort(d3.ascending)
-      let q1 = d3.quantile(sortedWidth, .25)/5
-      let median = d3.quantile(sortedWidth, .5)/5
-      let q3 = d3.quantile(sortedWidth, .75)/5
-      console.log(q3)
-      let interQuantileRange = q3 - q1
-      let min = q1 -1.5 * interQuantileRange
-      let max = q1 + 1.5 * interQuantileRange
+    let data = this.data;
+    let parseFeetFromString = x => parseFloat(x.slice(0, x.length - 1).replace(',', '') / (x.endsWith('"') ? 12 : 1));
 
-      let y = d3.scaleLinear()
-        .domain([0,100])
-        .range([400, 0]);
-      
-      let svg2 = this.div
+    
+    let svg2 = this.div
         .append('svg')
-        .attr('width', this.dimensions.width)
-        .attr('height', this.dimensions.height)
-        .attr('id', 'tooltip-svg');
+        .attr('width', this.dimensions.width+100)
+        .attr('height', this.dimensions.height+100)
+        .attr('id', 'tooltip_svg');
+    //let sortedWidth = widthData.sort(d3.ascending)
+    Array.from(['Width', 'Vertical']).reduce((obj, k) => {
+      let dk = data.map(d => parseFeetFromString(d[k]))
+      dk.sort(d3.ascending)
+      console.log(dk)
+      obj[k] = {
+        q1: d3.quantile(dk, .25)/5,
+        q2: d3.quantile(dk, .5)/5,
+        q3: d3.quantile(dk, .75)/5
+      }
+      console.log(obj[k].q1)
+      console.log(obj[k].q2)
+      console.log(obj[k].q3)
+      let interQuantileRange= obj[k].q3-obj[k].q1
+      let min = obj[k].q1 -1.5 *interQuantileRange
+      let max=  obj[k].q3 + 1.5 * interQuantileRange
+      console.log(interQuantileRange)
+      console.log(min)
+      console.log(max)
+      
+
+      
+      // Show the X scale
+      var x = d3.scaleBand()
+        .range([0, this.dimensions.width])
+        .domain(["Width", "Vertical"])
+        .paddingInner(1)
+        .paddingOuter(.5)
+      svg2.append("g")
+        .attr("transform", "translate(0," + this.dimensions.height + ")")
+        .call(d3.axisBottom(x).tickValues(x.domain()).tickSizeOuter(0).tickSizeInner(0))
+
+      // Show the Y scale
+      var y = d3.scaleLinear()
+        .domain([-150,210])
+        .range([this.dimensions.height, 0])
+      svg2.append("g").call(d3.axisLeft(y).tickValues(y.domain()).tickSizeOuter(0).tickSizeInner(0))
+
+
       // Show the main vertical line
       svg2
-      .append("line")
-      .attr("x1", center)
-      .attr("x2", center)
-      .attr("y1", y(min) )
-      .attr("y2", y(max) )
-      .attr("stroke", "black")
-      
-// Show the box
+        .selectAll("vertLines")
+        .data(dk)
+        .enter()
+        .append("line")
+        .attr("x1", function (d) { return (x(k)) })
+        .attr("x2", function (d) { return (x(k)) })
+        .attr("y1", function (d) { return (y(min)) })
+        .attr("y2", function (d) { return (y(max)) })
+        .attr("stroke", "black")
+        .style("width", 40)
+
+      // Show the box
+      var boxWidth = 100
       svg2
-      .append("rect")
-      .attr("x", center - width2/2)
-      .attr("y", y(q3) )
-      .attr("height", (y(q1)-y(q3)) )
-      .attr("width", width2 )
-      .attr("stroke", "black")
-      .style("fill", "#69b3a2")
+        .selectAll("boxes")
+        .data(dk)
+        .enter()
+        .append("rect")
+        .attr("x", function (d) { return (x(k) - boxWidth / 2) })
+        .attr("y", function (d) { return (y(obj[k].q3)) })
+        .attr("height", function (d) { return (y(obj[k].q1) - y(obj[k].q3)) })
+        .attr("width", boxWidth)
+        .attr("stroke", "black")
+        .style("fill", "#69b3a2")
 
-// show median, min and max horizontal lines
       svg2
-      .selectAll("toto")
-      .data([min, median, max])
-      .enter()
-      .append("line")
-      .attr("x1", center-width2/2)
-      .attr("x2", center+width2/2)
-      .attr("y1", function(d){ return(y(d))} )
-      .attr("y2", function(d){ return(y(d))} )
-      .attr("stroke", "black")
+        .selectAll("toto")
+        .data([min, obj[k].q2, max])
+        .enter()
+        .append("line")
+        .attr("x1", function(d){return(x(k) - boxWidth/2)})
+        .attr("x2", function(d){return(x(k)+boxWidth/2)})
+        .attr("y1", function(d){return(y(d))})
+        .attr("y2", function(d){return(y(d))})
+        .attr("stroke", "black")
 
-      var jitterWidth = 50
-    svg2
-      .selectAll("indPoints")
-      .data(data)
-      .enter()
-      .append("circle")
-      .attr("cx",100)
-      // .attr("cy", d=>(y(d.Width))/10+500)
-      .attr("cy", (d,i)=>i*5)
-      .attr("r", 4)
-      .style("fill", "white")
-      .attr("stroke", "black")
-      .on("mouseover", (e,d)=>{
-        console.log(d.Width)
-      })
-    }
-
-    drawTable()
-    {
-      let data = [...this.data];
-      this.data = this.data.filter(function(d){d.Region = "Ogden";})
-      
-      let columns = ['Region', 'Place', 'Trigger', 'Depth', 'Width', 'Vertical', 'Aspect', 'Elevation'];
-        let table = this.div.append('table');
-    
-        let thead = table.append('thead');
-        let tbody = table.append('tbody');
-    
-        thead.append('tr')
-            .selectAll('th')
-            .data(["Region", "Place", "Trigger","Depth", "Width", "Vertical", "Aspect", "Elevation"])
-            .enter()
-            .append('th')
-            .style('border', '1px solid black')
-            .text(function(column){
-                return column;
-            });
-        let rows =  tbody.selectAll('tr')
-            .data(data.filter(function(d,i) {return i<10}))
-            .enter()
-            .append('tr')
-            .style('border', '1px solid black')
-            ;
+        var jitterWidth = 50
         
-        let cells = rows.selectAll('td')
-            .data(function(row){
-                return columns.map(function(column){
-                    return{
-                        column: column,
-                        value: row[column]
-                    };
-                });
-            })
-            .enter()
-            .append('td')
-            .style('border', '1px solid black')
-            .text(function(d){
-                return d.value;
-            });
-    }
+      svg2
+        .selectAll("indPoints")
+        .data(data)
+        .enter()
+        .append("circle")
+        .attr("cx", function(d){return(x(k))})
+        .attr("cy", function(d){return(y(dk[3000]))})
+        .attr("r", 4)
+        .style("fill", "white")
+        .attr("stroke", "black")
+        
+      return obj
+    }, {})
 
-  
+  }
 
 }
-export{ToolTip};
+export { ToolTip };

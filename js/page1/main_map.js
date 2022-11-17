@@ -23,7 +23,7 @@ class MainMap {
 
     this.mapId = "map";
   }
-
+  
   /**
    * Converts coordinates of avalanches to geojson points
    * @returns {d3.GeoPermissibleObjects}
