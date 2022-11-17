@@ -1,6 +1,7 @@
 import { MainMap } from "./main_map.js";
-import {TimeSelect} from "../shared/timeselect.js"
+import { TimeSelect } from "../shared/timeselect.js";
 import { ToolTip } from "./tooltip.js";
+import * as utils from "../shared/utils.js";
 
 // coordinate tooltip.js, main_map.js, timeselect.js
 
@@ -9,88 +10,90 @@ class Page1 {
     console.log("Init Page 1");
 
     this.data = data;
-    this.timeselect = new TimeSelect(data);
-    this.tooltip = new ToolTip(data);
-    
+
+    this.padding = 10;
+
+    this.dimensions = {
+      timeselect: {
+        width: 1000,
+        height: 100,
+      },
+      map: {
+        width: 700,
+        height: 700,
+      },
+      tooltip: {
+        width: 600,
+        height: 600,
+      },
+    };
+
+    this.positions = {
+      timeselect: {
+        x: 0,
+        y: 0,
+      },
+      map: {
+        x: 0,
+        y: this.dimensions.timeselect.height + this.padding,
+      },
+      tooltip: {
+        x: 0,
+        y:
+          this.dimensions.timeselect.height +
+          this.dimensions.map.height +
+          this.padding,
+      },
+    };
+
+    // initialize components
+    this.timeselect = new TimeSelect(this.data);
+    this.tooltip = new ToolTip(this.data);
+    this.map = new MainMap(this.data);
   }
 
   render() {
-    let mapDiv = d3
-      .select("body")
+    let div = d3.select(".content");
+
+    let tsDiv = div
       .append("div")
-      .attr("id", "map")
-      .style("height", "700px")
-      .style("width", "700px");
+      .attr("id", "timeselect")
+      .style("width", `${this.dimensions.timeselect.width}px`)
+      .style("height", `${this.dimensions.timeselect.height}px`)
+      .style("left", `${this.positions.timeselect.x}px`)
+      .style("top", `${this.positions.timeselect.y}px`)
+      .classed('my-2', true)
 
-    this.map = new MainMap(mapDiv, this.data);
+    // .style("position", "absolute");
 
-    this.map.render();
+    let mapDiv = div
+      .append("div")
+      .attr("id", "map-container")
+      .style("width", `${this.dimensions.map.width}px`)
+      .style("height", `${this.dimensions.map.height}px`)
+      .style("left", `${this.positions.map.x}px`)
+      .style("top", `${this.positions.map.y}px`)
+      .classed('mb-5', true)
+      // .style("position", "absolute");
 
-    // let dataSlice = this.data.avalanches.slice(0, 5);
-    // let testSvg = d3.select("#test").data(dataSlice);
+    let ttDiv = div
+      .append("div")
+      .attr("id", "tooltip")
+      .style("width", `${this.dimensions.tooltip.width}px`)
+      .style("height", `${this.dimensions.tooltip.height}px`)
+      .style("left", `${this.positions.tooltip.x}px`)
+      .style("top", `${this.positions.tooltip.y}px`);
+    // .style("position", "absolute");
 
-    // let tool = testSvg
-    //   .append("polygon")
-    //   .attr("id", (d, i) => `tooltip${i}`)
-    //   .attr("height", 600)
-    //   .attr("width", 600)
-    //   .attr(
-    //     "points",
-    //     "318.5 10, 701.5 10, 1010 318.5, 1010 701.5, 701.5 1010, 318.5 1010, 10 701.5, 10 318.5"
-    //   )
-    //   .style("fill", "lightgrey")
-    //   .style("stroke", "black")
-    //   .style("strokeWidth", "10px")
-    //   .style("opacity", 0)
-    //   .style("position", "absolute");
+    this.timeselect.render(tsDiv);
+    this.tooltip.render(ttDiv);
+    this.map.render(mapDiv);
 
-    // testSvg
-    //   .append("circle")
-    //   .attr("x", (d, i) => 100 * i)
-    //   .attr("y", (d, i) => 100 * i)
-    //   .attr("r", 50)
-    //   .attr("fill", "red")
-    //   .on("mouseover", function (e, d) {
-    //     tool.transition().duration(200).style("opacity", 0.9);
-    //     tool
-    //       .html(
-    //         "Attribute  Value   Plot" +
-    //           "<br/>" +
-    //           "Region: " +
-    //           d.Region +
-    //           "" +
-    //           "<br/>" +
-    //           "Place: " +
-    //           d.Place +
-    //           "" +
-    //           "<br/>" +
-    //           "Trigger: " +
-    //           d.Trigger +
-    //           "" +
-    //           "<br/>" +
-    //           "Width: " +
-    //           d.Width +
-    //           "" +
-    //           "<br/>" +
-    //           "Vertical: " +
-    //           d.Vertical +
-    //           "" +
-    //           "<br/>" +
-    //           "Aspect: " +
-    //           d.Aspect +
-    //           "" +
-    //           "<br/>" +
-    //           "Elevation: " +
-    //           d.Elevation +
-    //           "" +
-    //           "<br/>"
-    //       )
-    //       .style("left", d3.select(this).attr("cx") + "px")
-    //       .style("top", d3.select(this).attr("cy") + "px");
-    //   })
-    //   .on("mouseout", function (d) {
-    //     tool.transition().duration(500).style("opacity", 0);
-    //   });
+    this.elementIds = ["timeselect", "map-container", "tooltip"];
+  }
+
+  hide() {
+    this.elementIds.forEach((id) => document.getElementById(id).remove());
   }
 }
 export { Page1 };

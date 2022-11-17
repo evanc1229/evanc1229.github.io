@@ -1,13 +1,16 @@
 // main map component in P1
-var leaflet = await import("https://cdn.skypack.dev/leaflet");
-import("leaflet").catch((e) => {});
+import * as utils from "../shared/utils.js";
+
+// var leaflet = await import("https://cdn.skypack.dev/leaflet");
+// import("leaflet").catch((e) => {});
 
 if (L === undefined) L = leaflet;
 
 class MainMap {
-  constructor(div, data, verbose) {
+  constructor(data, verbose) {
     console.log("Init Main Map");
-    this.div = div;
+    this.dimensions = {};
+
     this.data = data;
     this.verbose = verbose === undefined ? false : verbose;
 
@@ -17,11 +20,13 @@ class MainMap {
       radius: 2.6,
       maxZoom: 12,
     };
+
+    this.mapId = "map";
   }
   
   /**
    * Converts coordinates of avalanches to geojson points
-   * @returns
+   * @returns {d3.GeoPermissibleObjects}
    */
   convert_points() {
     let avalanchePoints = {
@@ -52,7 +57,7 @@ class MainMap {
 
   /**
    * Initializes a leaflet map
-   * @param {('osm'|'terrain'})}
+   * @param {('osm'|'terrain1'|'terrain2'})}
    * @returns {L.Map}
    */
   init_map(provider) {
@@ -89,7 +94,7 @@ class MainMap {
         `"${provider}" is not a valid provider [${Object.keys(layerMap)}]`
       );
 
-    let map = L.map("map").setView(this.init.view, this.init.zoom);
+    let map = L.map(this.mapId).setView(this.init.view, this.init.zoom);
     let layer = layerMap[provider];
 
     layer.addTo(map);
@@ -117,7 +122,21 @@ class MainMap {
     return overlay.raise();
   }
 
-  render() {
+  /**
+   *
+   * @param {d3.Selection} div
+   */
+  render(div) {
+    this.div = div;
+    this.dimensions = utils.getDimensions(div);
+
+    console.log(this.dimensions)
+    this.mapDiv = div
+      .append("div")
+      .attr("id", this.mapId)
+      .style("width", `${this.dimensions.width}px`)
+      .style("height", `${this.dimensions.height}px`)
+
     let map = this.init_map("terrain1");
     let overlay = this.init_overlay(map);
 
@@ -129,13 +148,13 @@ class MainMap {
       const point = map.latLngToLayerPoint(new L.LatLng(y, x));
       return this.stream.point(point.x, point.y);
     };
-    
+
     // define a d3 projection
     const projectToMapD3 = d3.geoTransform({ point: projectToMap });
     const pathCreator = d3.geoPath().projection(projectToMapD3);
 
-    let incidentPoints = this.convert_points().features;
-    
+    let incidentPoints = this.convert_points();
+
     // let areas = d3.filter(
     //   this.data.map.features,
     //   (d) => d.geometry.type != "Point"
@@ -177,7 +196,7 @@ class MainMap {
 
     const incidentNodes = g
       .selectAll("circle")
-      .data(incidentPoints)
+      .data(incidentPoints.features)
       .join("circle")
       .attr("stroke", "black")
       .attr("stroke-width", 0.3)

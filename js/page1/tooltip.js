@@ -1,33 +1,36 @@
 // tooltip component in P1
 
+import * as utils from "../shared/utils.js";
+
 var leaflet = await import("https://cdn.skypack.dev/leaflet");
 import("leaflet").catch((e) => { });
 
 if (L === undefined) L = leaflet;
 
-class ToolTip {
-  constructor(data, width = 600, height = 600) {
-    this.width = width;
-    this.height = height;
-
+class ToolTip{
+  constructor(data){
+    this.dimensions = {};
     this.data = data.avalanches;
-    
+  }
 
+  render(div) {
+    this.div = div;
+    this.dimensions = utils.getDimensions(div);
 
     this.drawbubble();
     
   }
 
   drawbubble() {
-    let data = [...this.data]
+    let data = this.data;
     let parseFeetFromString = x => parseFloat(x.slice(0, x.length - 1).replace(',', '') / (x.endsWith('"') ? 12 : 1));
 
     
-    let svg2 = d3.select('body')
+    let svg2 = this.div
         .append('svg')
-        .attr('width', this.width+100)
-        .attr('height', this.height+100)
-        .attr('id', 'tooltip');
+        .attr('width', this.dimensions.width+100)
+        .attr('height', this.dimensions.height+100)
+        .attr('id', 'tooltip_svg');
     //let sortedWidth = widthData.sort(d3.ascending)
     Array.from(['Width', 'Vertical']).reduce((obj, k) => {
       let dk = data.map(d => parseFeetFromString(d[k]))
@@ -52,18 +55,18 @@ class ToolTip {
       
       // Show the X scale
       var x = d3.scaleBand()
-        .range([0, this.width])
+        .range([0, this.dimensions.width])
         .domain(["Width", "Vertical"])
         .paddingInner(1)
         .paddingOuter(.5)
       svg2.append("g")
-        .attr("transform", "translate(0," + this.height + ")")
+        .attr("transform", "translate(0," + this.dimensions.height + ")")
         .call(d3.axisBottom(x).tickValues(x.domain()).tickSizeOuter(0).tickSizeInner(0))
 
       // Show the Y scale
       var y = d3.scaleLinear()
         .domain([-150,210])
-        .range([this.height, 0])
+        .range([this.dimensions.height, 0])
       svg2.append("g").call(d3.axisLeft(y).tickValues(y.domain()).tickSizeOuter(0).tickSizeInner(0))
 
 

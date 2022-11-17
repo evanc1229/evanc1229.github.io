@@ -1,5 +1,7 @@
 // time selection component in P1 and P2
 
+import * as utils from "./utils.js";
+
 /**
  *  This class creates a time selection component
  */
@@ -10,18 +12,19 @@ class TimeSelect {
      * and a specified width and height. If no dimesions are specified, the default is (0,0)
      * for x,y and 500x500 for width and height.
      * 
-     * @param {int} x 
-     * @param {int} y 
      * @param {int} width 
      * @param {int} height 
      */
-    constructor(data, x = 0, y = 0, width = 1000, height = 100) {
-        this.dimensions = this.x = {
-            x: x,
-            y: y,
-            width: width,
-            height: height
-        };
+    constructor(data) {
+        // this.dimensions = dimensions;
+        // this.dimensions = this.x = {
+        //     x: x,
+        //     y: y,
+        //     width: width,
+        //     height: height
+        // };
+
+        this.dimensions = {}
 
         this.dates = { date1: null, date2: null };
 
@@ -59,7 +62,7 @@ class TimeSelect {
 
         this.data = this.data.sort((a, b) => a.date - b.date);
 
-        this.draw();
+        // this.draw();
 
         // TODO: initialize new Event "timeUpdate" (or something like that)
 
@@ -69,17 +72,23 @@ class TimeSelect {
 
 
     /**
-     * This method draws the time selection component on the page.
+     * This method draws the time selection component in the div specified
+     * 
+     * @param {d3.Selection} div 
      */
-    draw() {
+     render(div) {
+        console.log(div)
+        this.dimensions = utils.getDimensions(div)
+
         // let data = [...this.data];
         //Creating svg to hold the time selection component
-        let svg = d3.select('body')
+        let svg = div
             .append('svg')
             .attr('width', this.dimensions.width)
             .attr('height', this.dimensions.height)
-            .attr('x', this.dimensions.x)
-            .attr('y', this.dimensions.y)
+            // .attr('x', this.dimensions.x)
+            // .attr('x', "1000px")
+            // .attr('y', this.dimensions.y)
             .attr('id', 'timeselect');
 
         //Creating groups to hold sub components
