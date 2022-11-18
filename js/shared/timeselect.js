@@ -12,8 +12,8 @@ class TimeSelect {
      * and a specified width and height. If no dimesions are specified, the default is (0,0)
      * for x,y and 500x500 for width and height.
      * 
-     * @param {int} width 
-     * @param {int} height 
+     * @param {Array<utils.AvalancheData>} data 
+     * @param {bool} verbose
      */
     constructor(data, verbose=false) {
         // this.dimensions = dimensions;
@@ -31,7 +31,7 @@ class TimeSelect {
 
         this.margin = { top: 10, right: 10, bottom: 10, left: 10 };
         this.mode = { single: true, start: null, end: null };
-        this.data = data.avalanches;
+        this.data = data;
 
 
         //preprocess the data

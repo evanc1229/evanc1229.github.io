@@ -8,9 +8,14 @@ import("leaflet").catch((e) => { });
 if (L === undefined) L = leaflet;
 
 class ToolTip{
+  /**
+   * 
+   * @param {Array<utils.AvalancheData>} data 
+   * @param {bool} verbose 
+   */
   constructor(data, verbose=false){
     this.dimensions = {};
-    this.data = data.avalanches;
+    this.data = data;
     this.verbose = verbose
   }
 

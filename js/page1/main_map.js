@@ -7,11 +7,18 @@ import * as utils from "../shared/utils.js";
 if (L === undefined) L = leaflet;
 
 class MainMap {
+  /**
+   * 
+   * @param {Array<utils.AvalancheData>} data 
+   * @param {bool} verbose 
+   */
   constructor(data, verbose = false) {
     this.log("Init Main Map");
     this.dimensions = {};
 
-    this.data = data;
+    this.baseData = data;
+    this.data = this.baseData;
+
     this.verbose = verbose;
 
     this.init = {
@@ -29,6 +36,22 @@ class MainMap {
       console.log(msg)
   }
 
+  /**
+   * 
+   * @param {Callable<object,bool>} criteria 
+   */
+  filter_data(criteria) {
+    this.data = d3.filter(this.data, criteria);
+  }
+
+  transform_data(func) {
+    this.data = this.data.map(func)
+  }
+
+  restore_data() {
+    this.data = this.baseData;
+  }
+
 
   /**
    * Converts coordinates of avalanches to geojson points
@@ -39,7 +62,8 @@ class MainMap {
       type: "FeatureCollection",
       features: [],
     };
-    avalanchePoints.features = this.data.avalanches
+
+    avalanchePoints.features = this.data
       .filter((e) => e.Coordinates.length > 0)
       .map((e) => {
         let coords = e.Coordinates.split(", ")

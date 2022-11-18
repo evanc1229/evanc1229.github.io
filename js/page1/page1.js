@@ -3,12 +3,16 @@ import { TimeSelect } from "../shared/timeselect.js";
 import { ToolTip } from "./tooltip.js";
 import * as utils from "../shared/utils.js";
 
+
 // coordinate tooltip.js, main_map.js, timeselect.js
 
 class Page1 {
+  /**
+   * 
+   * @param {Array<utils.AvalancheData>} data 
+   */
   constructor(data) {
     console.log("Init Page 1");
-
     this.data = data;
 
     this.padding = 10;
