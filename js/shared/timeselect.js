@@ -15,24 +15,11 @@ class TimeSelect {
      * @param {int} width 
      * @param {int} height 
      */
-    constructor(data, verbose=false) {
-        // this.dimensions = dimensions;
-        // this.dimensions = this.x = {
-        //     x: x,
-        //     y: y,
-        //     width: width,
-        //     height: height
-        // };
+    constructor(data, verbose = false) {
         this.verbose = verbose
-
-        this.dimensions = {}
-
         this.dates = { date1: null, date2: null };
-
-        this.margin = { top: 10, right: 10, bottom: 10, left: 10 };
-        this.mode = { single: true, start: null, end: null };
+        this.margin_bottom = 20;
         this.data = data.avalanches;
-
 
         //preprocess the data
         this.data.forEach((d) => {
@@ -62,17 +49,12 @@ class TimeSelect {
         });
 
         this.data = this.data.sort((a, b) => a.date - b.date);
-
-        // TODO: initialize new Event "timeUpdate" (or something like that)
-
     }
 
     log(...msg) {
         if (this.verbose)
-        console.log(msg)
+            console.log(msg)
     }
-
-    // TODO: add function for registering new listeners to "timeUpdate"
 
 
     /**
@@ -80,19 +62,16 @@ class TimeSelect {
      * 
      * @param {d3.Selection} div 
      */
-     render(div) {
+    render(div) {
         this.log(div)
-        this.dimensions = utils.getDimensions(div)
+        this.dimensions = utils.getDimensions(div);
+        console.log(this.dimensions);
 
-        // let data = [...this.data];
         //Creating svg to hold the time selection component
         let svg = div
             .append('svg')
             .attr('width', this.dimensions.width)
             .attr('height', this.dimensions.height)
-            // .attr('x', this.dimensions.x)
-            // .attr('x', "1000px")
-            // .attr('y', this.dimensions.y)
             .attr('id', 'timeselect');
 
         //Creating groups to hold sub components
@@ -108,10 +87,10 @@ class TimeSelect {
         selectors
             .append('line')
             .attr('id', 'ts-line1')
-            .attr('x1', this.dimensions.x)
+            .attr('x1', 0)
             .attr('y1', 0)
-            .attr('x2', this.dimensions.x)
-            .attr('y2', this.dimensions.y )
+            .attr('x2', 0)
+            .attr('y2', this.dimensions.height - this.margin_bottom)
             .attr('stroke', 'grey')
             .attr('stroke-width', 4)
             .attr('visibility', 'hidden');
@@ -119,10 +98,10 @@ class TimeSelect {
         selectors
             .append('line')
             .attr('id', 'ts-line2')
-            .attr('x1', this.dimensions.x)
+            .attr('x1', 0)
             .attr('y1', 0)
-            .attr('x2', this.dimensions.x)
-            .attr('y2', this.dimensions.y)
+            .attr('x2', 0)
+            .attr('y2', this.dimensions.height - this.margin_bottom)
             .attr('stroke', 'grey')
             .attr('stroke-width', 4)
             .attr('visibility', 'hidden');
@@ -130,11 +109,11 @@ class TimeSelect {
         //Creating scales
         let xScale = d3.scaleTime()
             .domain(d3.extent(this.data, d => d.date))
-            .range([this.margin.left, this.dimensions.width - this.margin.right]);
+            .range([0, this.dimensions.width]);
 
         let yScale = d3.scaleLinear()
             .domain([0, Math.sqrt(d3.max(this.data, d => d.count))]) //Square root scale to make the graph more readable
-            .range([this.dimensions.height, this.margin.top]);
+            .range([this.dimensions.height - this.margin_bottom, 0]);
 
         let areaGenerator = d3.area()
             .x(d => xScale(d.date))
@@ -148,7 +127,7 @@ class TimeSelect {
             .attr('y', 0)
             .attr('rx', 5)
             .attr('width', this.dimensions.width)
-            .attr('height', this.dimensions.height)
+            .attr('height', this.dimensions.height - this.margin_bottom)
             .attr('fill', 'none')
             .attr('stroke-width', 3)
             .attr('stroke', 'black');
@@ -163,7 +142,7 @@ class TimeSelect {
 
         let text =
             svg.append('text')
-                .attr('x', this.dimensions.x + this.dimensions.width / 3)
+                .attr('x', this.dimensions.width / 3)
                 .attr('y', 20)
                 .attr('id', 'timeselect-text')
                 .attr('font-size', '10px')
@@ -181,8 +160,8 @@ class TimeSelect {
                 // If it is, when clicked we need to start moving select 1
                 if (!line1.classed('moving')) {
                     line1
-                        .attr('x1', this.dimensions.x + e.offsetX)
-                        .attr('x2', this.dimensions.x + e.offsetX)
+                        .attr('x1', e.offsetX)
+                        .attr('x2', e.offsetX)
                         .attr('visibility', 'visible')
                         .classed('moving', true);
                 }
@@ -191,7 +170,7 @@ class TimeSelect {
                     line1
                         .classed('moving', false)
                         .classed('active', true);
-                    this.dates.date1 = xScale.invert(this.dimensions.x + e.offsetX - this.dimensions.x);
+                    this.dates.date1 = xScale.invert(e.offsetX);
                 }
             }
             else if (line1.classed('active') && !line2.classed('active')) {
@@ -199,25 +178,25 @@ class TimeSelect {
                 // If select 1 is active, but select 2 is not, when clicked we need to start moving select 2
                 if (!line2.classed('moving')) {
                     line2
-                        .attr('x1', this.dimensions.x + e.offsetX)
-                        .attr('x2', this.dimensions.x + e.offsetX)
+                        .attr('x1', e.offsetX)
+                        .attr('x2', e.offsetX)
                         .attr('visibility', 'visible')
                         .classed('moving', true);
                 }
-                else if (this.dimensions.x + e.offsetX > line1.attr('x1')) {
+                else if (e.offsetX > line1.attr('x1')) {
                     // If select 2 is already moving, stop and and grab the date
                     line2
                         .classed('moving', false)
                         .classed('active', true)
-                    this.dates.date2 = xScale.invert(this.dimensions.x + e.offsetX - this.dimensions.x);
+                    this.dates.date2 = xScale.invert(e.offsetX);
                 }
-                else if (this.dimensions.x + e.offsetX < line1.attr('x1')) {
+                else if (e.offsetX < line1.attr('x1')) {
                     // If select 2 is to the left of select 1, swap them
                     line2
                         .classed('moving', false)
                         .classed('active', true)
                     this.dates.date2 = this.dates.date1;
-                    this.dates.date1 = xScale.invert(this.dimensions.x + e.offsetX - this.dimensions.x);
+                    this.dates.date1 = xScale.invert(e.offsetX );
                 }
                 else {
                     // If select 2 and select 1 are the same then throw and error and do nothing
@@ -262,13 +241,13 @@ class TimeSelect {
         svg.on('mousemove', (e) => {
             if (d3.select('#ts-line1').classed('moving')) {
                 d3.select('#ts-line1')
-                    .attr('x1', this.dimensions.x + e.offsetX)
-                    .attr('x2', this.dimensions.x + e.offsetX);
+                    .attr('x1', e.offsetX)
+                    .attr('x2', e.offsetX);
             }
             else if (d3.select('#ts-line2').classed('moving')) {
                 d3.select('#ts-line2')
-                    .attr('x1', this.dimensions.x + e.offsetX)
-                    .attr('x2', this.dimensions.x + e.offsetX);
+                    .attr('x1', e.offsetX)
+                    .attr('x2', e.offsetX);
             }
         });
     }
