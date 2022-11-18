@@ -1,6 +1,8 @@
 # TA Feedback
 
 ## 11/17/22
+- Add 2nd page as hideable sidebar on the first page (i.e. some expanding tab/drawer to pull out various charts and graphs)
+	- (Maybe consider doing something similar with the 3rd page as well?)
 - Keep as a design principle: "how will someone who doesn't know anything about the viz understand how to use it"
 - Tell a story with your presentation
 	- Textboxes
