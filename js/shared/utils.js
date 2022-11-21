@@ -8,6 +8,9 @@ export async function loadData() {
   console.log("Loading Data");
   const avalanches = await d3.csv("data/avalanches.csv");
   // const map = await d3.json("data/map.geojson");
+  avalanches.forEach((d, i) => {
+    d["aid"] = i;
+  });
   return avalanches;
 }
 
@@ -27,25 +30,45 @@ export function getDimensions(selection) {
  */
 export function preprocessData(data_raw) {
   // TODO: preprocess dataset to standard form
-  let data = data_raw.map((d) => {
+
+  let data = data_raw.map((d, i) => {
+    let coordinates = [0, 0];
+    if (d.Coordinates.length > 0)
+      coordinates = d.Coordinates.split(", ")
+        .map((c) => parseFloat(c))
+        .reverse();
+
     return {
-      date: null,
-      region: null,
-      place: null,
-      trigger: null,
-      trigger_info: null,
-      layer: null,
-      depth: null,
-      width: null,
-      vertical: null,
-      aspect: null,
-      elevation: null,
-      coordinates: null,
-      victim_status: null,
-      summary_accident: null,
-      summary_terrain: null,
-      summary_weather: null,
-      comments: null,
+      aid: i,
+      date: d["Date"],
+      region: d["Region"],
+      place: d["Place"],
+      trigger: d["Trigger"],
+      trigger_info: d["Trigger: additional info"],
+      layer: d["Weak Layer"],
+      depth: d["Depth"],
+      width: d["Width"],
+      vertical: d["Vertical"],
+      aspect: d["Aspect"],
+      elevation: d["Elevation"],
+      coordinates: coordinates,
+      victim_status: [
+        d["Caught"],
+        d["Carried"],
+        d["Buried - Partly"],
+        d["Buried - Fully"],
+        d["Injured"],
+        d["Killed"],
+      ],
+      summary_accident: d["Accident and Rescue Summary"],
+      summary_terrain: d["Terrain Summary"],
+      summary_weather: d["Weather Conditions and History"],
+      comments: [
+        d["Comments 1"],
+        d["Comments 2"],
+        d["Comments 3"],
+        d["Comments 4"],
+      ],
     };
   });
   return data;
@@ -54,6 +77,7 @@ export function preprocessData(data_raw) {
 /**
  * Preprocessed Data
  * @typedef {Object} AvalancheData
+ * @property {number} aid
  * @property {Date} date
  * @property {string} region
  * @property {string} place

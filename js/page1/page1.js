@@ -54,9 +54,11 @@ class Page1 {
     this.timeselect = new TimeSelect(this.data, false);
     this.tooltip = new ToolTip(this.data, false);
     this.map = new MainMap(this.data, false);
+
+    this.components = [this.timeselect,this.tooltip, this.map]
   }
 
-  render() {
+  async render() {
     let div = d3.select(".content");
 
     let tsDiv = div
@@ -89,9 +91,9 @@ class Page1 {
       .style("top", `${this.positions.tooltip.y}px`);
     // .style("position", "absolute");
 
+    this.map.render(mapDiv);
     this.timeselect.render(tsDiv);
     this.tooltip.render(ttDiv);
-    this.map.render(mapDiv);
 
     this.elementIds = ["timeselect", "map-container", "tooltip"];
   }

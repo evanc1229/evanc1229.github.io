@@ -8,9 +8,9 @@ if (L === undefined) L = leaflet;
 
 class MainMap {
   /**
-   * 
-   * @param {Array<utils.AvalancheData>} data 
-   * @param {bool} verbose 
+   *
+   * @param {Array<utils.AvalancheData>} data
+   * @param {bool} verbose
    */
   constructor(data, verbose = false) {
     this.log("Init Main Map");
@@ -25,39 +25,59 @@ class MainMap {
       view: [40.593, -110.984],
       zoom: 7,
       radius: 2.6,
-      maxZoom: 12,
+      maxZoom: 15,
     };
 
     this.mapId = "map";
+
+    // XXX: Delete before merge
+    d3.select(".content")
+      .attr("id", "testbutton")
+      .append("button")
+      .text("filter map")
+      .attr("font-size", "16pt")
+      .on("click", (e) => {
+        this.filterData((d) => d.Date == null || d.Date[0] == "1");
+        this.updateNodes();
+      })
+      .raise();
   }
 
-  log(...msg) {
-    if (this.verbose)
-      console.log(msg)
-  }
-
-  /**
-   * 
-   * @param {Callable<object,bool>} criteria 
+  /** Log `msg` to console iff `this.verbose` was set to true
+   *
+   * @param  {...any} msg
    */
-  filter_data(criteria) {
-    this.data = d3.filter(this.data, criteria);
+  log(...msg) {
+    if (this.verbose) console.log(msg);
   }
 
-  transform_data(func) {
-    this.data = this.data.map(func)
+  /** Sets current selection of data based on filtering by `criteria`
+   *
+   * @param {(d:utils.AvalancheData)=>bool} criteria
+   */
+  filterData(criteria) {
+    this.data = d3.filter(this.baseData, criteria);
   }
 
-  restore_data() {
+  /** Transforms the selection of data by applying `func` to each data point
+   *
+   * @param {(d:utils.AvalancheData)=>utils.AvalancheData} func
+   */
+  transformData(func) {
+    this.data = this.data.map(func);
+  }
+
+  /** Undoes any selection or transformation done
+   */
+  restoreData() {
     this.data = this.baseData;
   }
 
-
-  /**
-   * Converts coordinates of avalanches to geojson points
+  /** Converts coordinates of avalanches to geojson points
+   *
    * @returns {d3.GeoPermissibleObjects}
    */
-  convert_points() {
+  convertPoints() {
     let avalanchePoints = {
       type: "FeatureCollection",
       features: [],
@@ -85,62 +105,37 @@ class MainMap {
     return avalanchePoints;
   }
 
-  /**
-   * Initializes a leaflet map
+  /** Initializes a leaflet map
+   *
    * @param {('osm'|'terrain1'|'terrain2'})}
    * @returns {L.Map}
    */
-  init_map(provider) {
+  initMap(provider) {
     provider = provider === undefined ? "osm" : provider;
-    // chosen from: https://leaflet-extras.github.io/leaflet-providers/preview/
-    let layerMap = {
-      osm: L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        maxZoom: this.init.maxZoom,
-        attribution:
-          '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-      }),
-      terrain1: L.tileLayer(
-        "https://stamen-tiles-{s}.a.ssl.fastly.net/terrain/{z}/{x}/{y}{r}.{ext}",
-        {
-          attribution:
-            'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-          subdomains: "abcd",
-          minZoom: 0,
-          maxZoom: this.init.maxZoom,
-          ext: "png",
-        }
-      ),
-      terrain2: L.tileLayer(
-        "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
-        {
-          maxZoom: this.init.maxZoom,
-          attribution:
-            'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)',
-        }
-      ),
-    };
-    if (!Object.keys(layerMap).includes(provider))
+    this.initLayers();
+
+    if (!Object.keys(this.layerMap).includes(provider))
       throw Error(
-        `"${provider}" is not a valid provider [${Object.keys(layerMap)}]`
+        `"${provider}" is not a valid provider [${Object.keys(this.layerMap)}]`
       );
 
     let map = L.map(this.mapId).setView(this.init.view, this.init.zoom);
-    let layer = layerMap[provider];
+    let layer = this.layerMap[provider];
 
     layer.addTo(map);
 
-    var layerControl = L.control.layers(layerMap).addTo(map);
+    var layerControl = L.control.layers(this.layerMap).addTo(map);
 
     this.map = map;
     return map;
   }
 
-  /**
-   * Initializes a d3 overlay over a leaflet map
+  /** Initializes a d3 overlay over a leaflet map
+   *
    * @param {L.Map} map
    * @returns {d3.Selection}
    */
-  init_overlay(map) {
+  initOverlay(map) {
     L.svg({ clickable: true }).addTo(map);
 
     // create an overlay svg for d3 to operate on
@@ -152,11 +147,11 @@ class MainMap {
     return overlay.raise();
   }
 
-  /**
+  /** Render current component to screen
    *
    * @param {d3.Selection} div
    */
-  render(div) {
+  async render(div) {
     this.div = div;
     this.dimensions = utils.getDimensions(div);
 
@@ -167,23 +162,26 @@ class MainMap {
       .style("width", `${this.dimensions.width}px`)
       .style("height", `${this.dimensions.height}px`);
 
-    let map = this.init_map("terrain1");
-    let overlay = this.init_overlay(map);
+    let map = this.initMap("google_terrain");
+    let overlay = this.initOverlay(map);
 
-    let svg = overlay.select("svg").attr("pointer-events", "auto");
-    let g = svg.append("g");
+    this.map_svg = overlay
+      .select("svg")
+      .attr("pointer-events", "auto")
+      .classed("leaflet-zoom-hide", true);
+    this.map_svg.append("g");
 
     // convert from lat/long to a point on the leaflet map
-    const projectToMap = function (x, y) {
-      const point = map.latLngToLayerPoint(new L.LatLng(y, x));
-      return this.stream.point(point.x, point.y);
-    };
+    // const projectToMap = function (x, y) {
+    //   const point = map.latLngToLayerPoint(new L.LatLng(y, x));
+    //   return this.stream.point(point.x, point.y);
+    // };
 
-    // define a d3 projection
-    const projectToMapD3 = d3.geoTransform({ point: projectToMap });
-    const pathCreator = d3.geoPath().projection(projectToMapD3);
+    // // define a d3 projection
+    // const projectToMapD3 = d3.geoTransform({ point: projectToMap });
+    // const pathCreator = d3.geoPath().projection(projectToMapD3);
 
-    let incidentPoints = this.convert_points();
+    // let incidentPoints = this.convertPoints();
 
     // let areas = d3.filter(
     //   this.data.map.features,
@@ -198,6 +196,41 @@ class MainMap {
     //   .attr("fill-opacity", 0.3)
     //   .attr("stroke", "black")
     //   .attr("stroke-width", 2.5);
+    // this.updateNodes();
+
+    // update circle and area positions on zoom
+    const onZoom = () => {
+      this.updateNodes();
+      // this.logMapState();
+      // this.calcCircleAttrs(this.map);
+      // areaPaths.attr("d", pathCreator);
+    };
+
+    const onDrag = () => {
+      // this.logMapState();
+    };
+
+    map.on("drag", onDrag);
+    map.on("zoomend", onZoom);
+
+    onZoom();
+  }
+
+  updateNodes() {
+    // HACK: totally random numbers
+    let rn = Math.pow(this.map.getZoom(), 2);
+    let rd = Math.pow(this.init.zoom, 2) / this.init.radius;
+    let r = rn / rd;
+
+    let coord_map = this.data.reduce((obj, d) => {
+      let p = this.map.latLngToLayerPoint([d.coordinates[1], d.coordinates[0]]);
+
+      obj[d.aid] = {
+        x: p.x,
+        y: p.y,
+      };
+      return obj;
+    }, {});
 
     const nodeMouseOver = (e) => {
       this.log(e.id);
@@ -213,34 +246,41 @@ class MainMap {
       c.transition().duration("150").attr("r", c.attr("fixed-r"));
     };
 
-    // update circle and area positions on zoom
-    const onZoom = () => {
-      this.logMapState();
-      this.calcCircleAttrs(incidentNodes, map);
-      // areaPaths.attr("d", pathCreator);
-    };
-
-    const onDrag = () => {
-      this.logMapState();
-    };
-
-    const incidentNodes = g
+    this.incidentNodes = this.map_svg
+      .select("g")
       .selectAll("circle")
-      .data(incidentPoints.features)
-      .join("circle")
-      .attr("stroke", "black")
-      .attr("stroke-width", 0.3)
-      .attr("fill", "crimson")
-      .classed("single-avalanche", true)
-      .on("mouseover", nodeMouseOver)
-      .on("mouseout", nodeMouseOut);
-
-    map.on("drag", onDrag);
-    map.on("zoomend", onZoom);
-
-    onZoom();
+      .data(this.data, (d) => d.aid)
+      .join(
+        (enter) => {
+          return enter
+            .append("circle")
+            .attr("cx", (d) => coord_map[d.aid].x)
+            .attr("cy", (d) => coord_map[d.aid].y)
+            .attr("fixed-r", r)
+            .attr("r", r)
+            .attr("stroke", "black")
+            .attr("stroke-width", 0.3)
+            .attr("fill", "crimson")
+            .classed("single-avalanche", true)
+            .on("mouseover", nodeMouseOver)
+            .on("mouseout", nodeMouseOut);
+        },
+        (update) => {
+          return update
+            .attr("fill", "blue")
+            .attr("cx", (d) => coord_map[d.aid].x)
+            .attr("cy", (d) => coord_map[d.aid].y)
+            .attr("fixed-r", r)
+            .attr("r", r);
+        },
+        (exit) => {
+          return exit.transition().duration(500).attr("fill", "grey").remove();
+        }
+      );
   }
 
+  /** Log current state of the map to the console
+   */
   logMapState() {
     if (!this.verbose) return;
     let map = this.map;
@@ -252,34 +292,62 @@ class MainMap {
     this.log(mapState);
   }
 
-  /**
-   * Calculates and sets correct x,y coordinates and radius for selection of circles
+  /** Calculates and sets correct x,y coordinates and radius for selection of circles
+   *
    * @param {d3.Selection} c
    * @param {L.map} map
    */
-  calcCircleAttrs(c, map) {
-    // HACK: totally random numbers
-    let rn = Math.pow(map.getZoom(), 2);
-    let rd = Math.pow(this.init.zoom, 2) / this.init.radius;
-    let r = rn / rd;
-    c.attr(
-      "cx",
-      (d) =>
-        map.latLngToLayerPoint([
-          d.geometry.coordinates[1],
-          d.geometry.coordinates[0],
-        ]).x
-    )
-      .attr(
-        "cy",
-        (d) =>
-          map.latLngToLayerPoint([
-            d.geometry.coordinates[1],
-            d.geometry.coordinates[0],
-          ]).y
-      )
-      .attr("fixed-r", r)
-      .attr("r", r);
+  calcCircleAttrs(map) {}
+
+  initLayers() {
+    // chosen from: https://leaflet-extras.github.io/leaflet-providers/preview/
+    this.layerMap = {
+      google_terrain: L.tileLayer(
+        "http://{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}",
+        {
+          maxZoom: this.init.maxZoom,
+          subdomains: ["mt0", "mt1", "mt2", "mt3"],
+        }
+      ),
+      google_streets: L.tileLayer(
+        "http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}",
+        {
+          maxZoom: this.init.maxZoom,
+          subdomains: ["mt0", "mt1", "mt2", "mt3"],
+        }
+      ),
+      google_satellite: L.tileLayer(
+        "http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
+        {
+          maxZoom: 20,
+          subdomains: ["mt0", "mt1", "mt2", "mt3"],
+        }
+      ),
+      osm: L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: this.init.maxZoom,
+        attribution:
+          '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      }),
+      stamen: L.tileLayer(
+        "https://stamen-tiles-{s}.a.ssl.fastly.net/terrain/{z}/{x}/{y}{r}.{ext}",
+        {
+          attribution:
+            'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+          subdomains: "abcd",
+          minZoom: 0,
+          maxZoom: this.init.maxZoom,
+          ext: "png",
+        }
+      ),
+      opentopo: L.tileLayer(
+        "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
+        {
+          maxZoom: this.init.maxZoom,
+          attribution:
+            'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)',
+        }
+      ),
+    };
   }
 }
 

@@ -36,11 +36,11 @@ class TimeSelect {
 
         //preprocess the data
         this.data.forEach((d) => {
-            d.Date = new Date(d.Date) != "Invalid Date" ? new Date(d.Date) : null; //first filter out invalid dates
+            d.date = new Date(d.date) != "Invalid Date" ? new Date(d.date) : null; //first filter out invalid dates
         });
 
         //Group the data by length per date and convert to an array of objects
-        this.data = Array.from(d3.rollup(this.data, v => v.length, d => d.Date));
+        this.data = Array.from(d3.rollup(this.data, v => v.length, d => d.date));
 
         this.data = this.data.map((d) => {
             return {
@@ -80,7 +80,7 @@ class TimeSelect {
      * 
      * @param {d3.Selection} div 
      */
-     render(div) {
+     async render(div) {
         this.log(div)
         this.dimensions = utils.getDimensions(div)
 

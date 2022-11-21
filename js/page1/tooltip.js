@@ -19,7 +19,7 @@ class ToolTip{
     this.verbose = verbose
   }
 
-  render(div) {
+  async render(div) {
     this.div = div;
     this.dimensions = utils.getDimensions(div);
 
@@ -43,7 +43,7 @@ class ToolTip{
         .attr('height', this.dimensions.height+100)
         .attr('id', 'tooltip_svg');
     //let sortedWidth = widthData.sort(d3.ascending)
-    Array.from(['Width', 'Vertical']).reduce((obj, k) => {
+    Array.from(['width', 'vertical']).reduce((obj, k) => {
       let dk = data.map(d => parseFeetFromString(d[k]))
       dk.sort(d3.ascending)
       this.log(dk)
@@ -67,7 +67,7 @@ class ToolTip{
       // Show the X scale
       var x = d3.scaleBand()
         .range([0, this.dimensions.width])
-        .domain(["Width", "Vertical"])
+        .domain(["width", "vertical"])
         .paddingInner(1)
         .paddingOuter(.5)
       svg2.append("g")

@@ -7,8 +7,8 @@ import * as utils from "./shared/utils.js";
 const data_raw = await utils.loadData();
 
 // TODO: implement utils.preprocessData, then use here
-// const data = utils.preprocessData(data_raw)
-const data = data_raw; // placeholder
+const data = utils.preprocessData(data_raw)
+// const data = data_raw; // placeholder
 
 const pages = {
   p1: new Page1(data),
