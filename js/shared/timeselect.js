@@ -12,23 +12,23 @@ class TimeSelect {
      * and a specified width and height. If no dimesions are specified, the default is (0,0)
      * for x,y and 500x500 for width and height.
      * 
-     * @param {int} width 
-     * @param {int} height 
+     * @param {Array<utils.AvalancheData>} data 
+     * @param {bool} verbose
      */
     constructor(data, verbose = false) {
         this.verbose = verbose
         this.dates = { date1: null, date2: null };
         this.margin_bottom = 18;
         this.margin_left = 15;
-        this.data = data.avalanches;
+        this.data = data;
 
         //preprocess the data
         this.data.forEach((d) => {
-            d.Date = new Date(d.Date) != "Invalid Date" ? new Date(d.Date) : null; //first filter out invalid dates
+            d.date = new Date(d.date) != "Invalid Date" ? new Date(d.date) : null; //first filter out invalid dates
         });
 
         //Group the data by length per date and convert to an array of objects
-        this.data = Array.from(d3.rollup(this.data, v => v.length, d => d.Date));
+        this.data = Array.from(d3.rollup(this.data, v => v.length, d => d.date));
 
         this.data = this.data.map((d) => {
             return {
@@ -63,7 +63,7 @@ class TimeSelect {
      * 
      * @param {d3.Selection} div 
      */
-    render(div) {
+     async render(div) {
         this.log(div)
         this.dimensions = utils.getDimensions(div);
         console.log(this.dimensions);

@@ -1,10 +1,14 @@
 import { Page1 } from "./page1/page1.js";
 import { Page2 } from "./page2/page2.js";
 import { Page3 } from "./page3/page3.js";
-import { loadData } from "./data.js";
+import * as utils from "./shared/utils.js";
 
 // Initialize each of pages 1, 2, and 3 with dataset
-const data = await loadData();
+const data_raw = await utils.loadData();
+
+// TODO: implement utils.preprocessData, then use here
+const data = utils.preprocessData(data_raw)
+// const data = data_raw; // placeholder
 
 const pages = {
   p1: new Page1(data),

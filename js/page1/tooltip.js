@@ -8,13 +8,18 @@ import("leaflet").catch((e) => { });
 if (L === undefined) L = leaflet;
 
 class ToolTip{
+  /**
+   * 
+   * @param {Array<utils.AvalancheData>} data 
+   * @param {bool} verbose 
+   */
   constructor(data, verbose=false){
     this.dimensions = {};
-    this.data = data.avalanches;
+    this.data = data;
     this.verbose = verbose
   }
 
-  render(div) {
+  async render(div) {
     this.div = div;
     this.dimensions = utils.getDimensions(div);
 
@@ -38,7 +43,7 @@ class ToolTip{
         .attr('height', this.dimensions.height+100)
         .attr('id', 'tooltip_svg');
     //let sortedWidth = widthData.sort(d3.ascending)
-    Array.from(['Elevation','Width', 'Vertical','Depth']).reduce((obj, k) => {
+    Array.from(['elevation','width', 'vertical','depth']).reduce((obj, k) => {
       let dk = data.map(d => parseFeetFromString(d[k]))
       dk.sort(d3.ascending)
       this.log(dk)
@@ -62,7 +67,7 @@ class ToolTip{
       // Show the X scale
       var x = d3.scaleBand()
         .range([0, this.dimensions.width])
-        .domain(["Elevation","Width", "Vertical", "Depth"])
+        .domain(["elevation","width", "vertical", "depth"])
         .paddingInner(1)
         .paddingOuter(.5)
       svg2.append("g")
