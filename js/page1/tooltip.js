@@ -43,7 +43,7 @@ class ToolTip{
         .attr('height', this.dimensions.height+100)
         .attr('id', 'tooltip_svg');
     //let sortedWidth = widthData.sort(d3.ascending)
-    Array.from(['width', 'vertical']).reduce((obj, k) => {
+    Array.from(['elevation','width', 'vertical','depth']).reduce((obj, k) => {
       let dk = data.map(d => parseFeetFromString(d[k]))
       dk.sort(d3.ascending)
       this.log(dk)
@@ -67,7 +67,7 @@ class ToolTip{
       // Show the X scale
       var x = d3.scaleBand()
         .range([0, this.dimensions.width])
-        .domain(["width", "vertical"])
+        .domain(["elevation","width", "vertical", "depth"])
         .paddingInner(1)
         .paddingOuter(.5)
       svg2.append("g")
@@ -76,7 +76,7 @@ class ToolTip{
 
       // Show the Y scale
       var y = d3.scaleLinear()
-        .domain([-150,210])
+        .domain([min-10,max+10])
         .range([this.dimensions.height, 0])
       svg2.append("g").call(d3.axisLeft(y).tickValues(y.domain()).tickSizeOuter(0).tickSizeInner(0))
 
@@ -118,6 +118,8 @@ class ToolTip{
         .attr("y1", function(d){return(y(d))})
         .attr("y2", function(d){return(y(d))})
         .attr("stroke", "black")
+        
+        
 
         var jitterWidth = 50
         
