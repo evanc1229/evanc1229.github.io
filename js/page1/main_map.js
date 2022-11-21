@@ -31,16 +31,16 @@ class MainMap {
     this.mapId = "map";
 
     // XXX: Delete before merge
-    d3.select(".content")
-      .attr("id", "testbutton")
-      .append("button")
-      .text("filter map")
-      .attr("font-size", "16pt")
-      .on("click", (e) => {
-        this.filterData((d) => d.Date == null || d.Date[0] == "1");
-        this.updateNodes();
-      })
-      .raise();
+    // d3.select(".content")
+    //   .attr("id", "testbutton")
+    //   .append("button")
+    //   .text("filter map")
+    //   .attr("font-size", "16pt")
+    //   .on("click", (e) => {
+    //     this.filterData((d) => d.Date == null || d.Date[0] == "1");
+    //     this.updateNodes();
+    //   })
+    //   .raise();
   }
 
   /** Log `msg` to console iff `this.verbose` was set to true
