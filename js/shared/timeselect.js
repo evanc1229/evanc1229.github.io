@@ -18,7 +18,8 @@ class TimeSelect {
     constructor(data, verbose = false) {
         this.verbose = verbose
         this.dates = { date1: null, date2: null };
-        this.margin_bottom = 20;
+        this.margin_bottom = 18;
+        this.margin_left = 15;
         this.data = data.avalanches;
 
         //preprocess the data
@@ -87,9 +88,9 @@ class TimeSelect {
         selectors
             .append('line')
             .attr('id', 'ts-line1')
-            .attr('x1', 0)
+            .attr('x1', this.margin_left)
             .attr('y1', 0)
-            .attr('x2', 0)
+            .attr('x2', this.margin_left)
             .attr('y2', this.dimensions.height - this.margin_bottom)
             .attr('stroke', 'grey')
             .attr('stroke-width', 4)
@@ -98,9 +99,9 @@ class TimeSelect {
         selectors
             .append('line')
             .attr('id', 'ts-line2')
-            .attr('x1', 0)
+            .attr('x1', this.margin_left)
             .attr('y1', 0)
-            .attr('x2', 0)
+            .attr('x2', this.margin_left)
             .attr('y2', this.dimensions.height - this.margin_bottom)
             .attr('stroke', 'grey')
             .attr('stroke-width', 4)
@@ -109,7 +110,7 @@ class TimeSelect {
         //Creating scales
         let xScale = d3.scaleTime()
             .domain(d3.extent(this.data, d => d.date))
-            .range([0, this.dimensions.width]);
+            .range([this.margin_left*2, this.dimensions.width - this.margin_left]);
 
         let yScale = d3.scaleLinear()
             .domain([0, Math.sqrt(d3.max(this.data, d => d.count))]) //Square root scale to make the graph more readable
@@ -120,16 +121,28 @@ class TimeSelect {
             .y1(d => yScale(d.count))
             .y0(yScale(0));
 
+        //Adding Axis
+        let xAxis = d3.axisBottom(xScale)
+            .ticks(13)
+            .tickFormat(d3.timeFormat("%Y"));
+
+        chart
+            .append('g')
+            .attr('id', 'ts-xaxis')
+            .attr('transform', `translate(0, ${this.dimensions.height - this.margin_bottom})`)
+            .call(xAxis)
+            .call(g => g.select(".domain").remove());
+
         //Adding a rect to the svg to add a border
         svg
             .append('rect')
-            .attr('x', 0)
+            .attr('x', this.margin_left)
             .attr('y', 0)
             .attr('rx', 5)
-            .attr('width', this.dimensions.width)
+            .attr('width', this.dimensions.width - this.margin_left)
             .attr('height', this.dimensions.height - this.margin_bottom)
             .attr('fill', 'none')
-            .attr('stroke-width', 3)
+            .attr('stroke-width', 1)
             .attr('stroke', 'black');
 
 
@@ -140,6 +153,7 @@ class TimeSelect {
             .attr('fill', 'lightblue')
             .attr('stroke', 'lightblue');
 
+        //TODO: Remove this once axis are added
         let text =
             svg.append('text')
                 .attr('x', this.dimensions.width / 3)
@@ -155,99 +169,103 @@ class TimeSelect {
         svg.on('click', (e) => {
             let line1 = d3.select('#ts-line1');
             let line2 = d3.select('#ts-line2');
-            // Is timeselect in the default state?
-            if (!line1.classed('active') && !line2.classed('active')) {
-                // If it is, when clicked we need to start moving select 1
-                if (!line1.classed('moving')) {
-                    line1
-                        .attr('x1', e.offsetX)
-                        .attr('x2', e.offsetX)
-                        .attr('visibility', 'visible')
-                        .classed('moving', true);
+            if (e.offsetX > this.margin_left && e.offsetX < this.dimensions.width) {
+                // Is timeselect in the default state?
+                if (!line1.classed('active') && !line2.classed('active')) {
+                    // If it is, when clicked we need to start moving select 1
+                    if (!line1.classed('moving')) {
+                        line1
+                            .attr('x1', e.offsetX)
+                            .attr('x2', e.offsetX)
+                            .attr('visibility', 'visible')
+                            .classed('moving', true);
+                    }
+                    else {
+                        // If select 1 is already moving, stop and and grab the date
+                        line1
+                            .classed('moving', false)
+                            .classed('active', true);
+                        this.dates.date1 = xScale.invert(e.offsetX);
+                    }
                 }
-                else {
-                    // If select 1 is already moving, stop and and grab the date
-                    line1
-                        .classed('moving', false)
-                        .classed('active', true);
-                    this.dates.date1 = xScale.invert(e.offsetX);
-                }
-            }
-            else if (line1.classed('active') && !line2.classed('active')) {
+                else if (line1.classed('active') && !line2.classed('active')) {
 
-                // If select 1 is active, but select 2 is not, when clicked we need to start moving select 2
-                if (!line2.classed('moving')) {
-                    line2
-                        .attr('x1', e.offsetX)
-                        .attr('x2', e.offsetX)
-                        .attr('visibility', 'visible')
-                        .classed('moving', true);
+                    // If select 1 is active, but select 2 is not, when clicked we need to start moving select 2
+                    if (!line2.classed('moving')) {
+                        line2
+                            .attr('x1', e.offsetX)
+                            .attr('x2', e.offsetX)
+                            .attr('visibility', 'visible')
+                            .classed('moving', true);
+                    }
+                    else if (e.offsetX > line1.attr('x1')) {
+                        // If select 2 is already moving, stop and and grab the date
+                        line2
+                            .classed('moving', false)
+                            .classed('active', true)
+                        this.dates.date2 = xScale.invert(e.offsetX);
+                    }
+                    else if (e.offsetX < line1.attr('x1')) {
+                        // If select 2 is to the left of select 1, swap them
+                        line2
+                            .classed('moving', false)
+                            .classed('active', true)
+                        this.dates.date2 = this.dates.date1;
+                        this.dates.date1 = xScale.invert(e.offsetX);
+                    }
+                    else {
+                        // If select 2 and select 1 are the same then throw and error and do nothing
+                        chart
+                            .select('path')
+                            .transition()
+                            .duration(100)
+                            .attr('stroke', 'red')
+                            .attr('fill', 'red')
+                            .transition()
+                            .duration(100)
+                            .attr('stroke', 'lightblue')
+                            .attr('fill', 'lightblue');
+                    }
                 }
-                else if (e.offsetX > line1.attr('x1')) {
-                    // If select 2 is already moving, stop and and grab the date
-                    line2
-                        .classed('moving', false)
-                        .classed('active', true)
-                    this.dates.date2 = xScale.invert(e.offsetX);
-                }
-                else if (e.offsetX < line1.attr('x1')) {
-                    // If select 2 is to the left of select 1, swap them
-                    line2
-                        .classed('moving', false)
-                        .classed('active', true)
-                    this.dates.date2 = this.dates.date1;
-                    this.dates.date1 = xScale.invert(e.offsetX );
-                }
-                else {
-                    // If select 2 and select 1 are the same then throw and error and do nothing
-                    chart
-                        .select('path')
-                        .transition()
-                        .duration(100)
-                        .attr('stroke', 'red')
-                        .attr('fill', 'red')
-                        .transition()
-                        .duration(100)
-                        .attr('stroke', 'lightblue')
-                        .attr('fill', 'lightblue');
-                }
-            }
-            else if (line1.classed('active') && line2.classed('active')) {
-                // If both are active, reset the chart
-                line1
-                    .attr('x1', 0)
-                    .attr('x2', 0)
-                    .attr('visibility', 'hidden')
-                    .classed('active', false)
-                    .classed('moving', false);
+                else if (line1.classed('active') && line2.classed('active')) {
+                    // If both are active, reset the chart
+                    line1
+                        .attr('x1', 0)
+                        .attr('x2', 0)
+                        .attr('visibility', 'hidden')
+                        .classed('active', false)
+                        .classed('moving', false);
 
-                line2
-                    .attr('x1', 0)
-                    .attr('x2', 0)
-                    .attr('visibility', 'hidden')
-                    .classed('active', false)
-                    .classed('moving', false);
-                this.dates.date1 = null;
-                this.dates.date2 = null;
+                    line2
+                        .attr('x1', 0)
+                        .attr('x2', 0)
+                        .attr('visibility', 'hidden')
+                        .classed('active', false)
+                        .classed('moving', false);
+                    this.dates.date1 = null;
+                    this.dates.date2 = null;
+                }
+                text
+                    .text(`(Demonstration Purposes Only) Selection type: ${this.dates.date1 && this.dates.date2 ? 'range' : 'single'} , Start date: ${this.dates.date1 ? this.dates.date1.toDateString() : 'null'}, End date: ${this.dates.date2 ? this.dates.date2.toDateString() : 'null'}`)
+                this.log(this.getDates());
             }
-            text
-                .text(`(Demonstration Purposes Only) Selection type: ${this.dates.date1 && this.dates.date2 ? 'range' : 'single'} , Start date: ${this.dates.date1 ? this.dates.date1.toDateString() : 'null'}, End date: ${this.dates.date2 ? this.dates.date2.toDateString() : 'null'}`)
-            this.log(this.getDates());
 
             // TODO: dispatch events, listeners should call .getDates() and update themselves
         });
 
         //Allows Selection elements to move when mouse is dragged and they are in the moving state
         svg.on('mousemove', (e) => {
-            if (d3.select('#ts-line1').classed('moving')) {
-                d3.select('#ts-line1')
-                    .attr('x1', e.offsetX)
-                    .attr('x2', e.offsetX);
-            }
-            else if (d3.select('#ts-line2').classed('moving')) {
-                d3.select('#ts-line2')
-                    .attr('x1', e.offsetX)
-                    .attr('x2', e.offsetX);
+            if (e.offsetX > this.margin_left && e.offsetX < this.dimensions.width) {
+                if (d3.select('#ts-line1').classed('moving')) {
+                    d3.select('#ts-line1')
+                        .attr('x1', e.offsetX)
+                        .attr('x2', e.offsetX);
+                }
+                else if (d3.select('#ts-line2').classed('moving')) {
+                    d3.select('#ts-line2')
+                        .attr('x1', e.offsetX)
+                        .attr('x2', e.offsetX);
+                }
             }
         });
     }
