@@ -23,6 +23,14 @@ export function getDimensions(selection) {
   return selection.node().getBoundingClientRect();
 }
 
+export function range(x,y) {
+    // stolen from: https://stackoverflow.com/questions/3895478/does-javascript-have-a-method-like-range-to-generate-a-range-within-the-supp
+    if (x>y) {
+        return [];
+    }
+    else return [x, ...range(x+1,y)];
+}
+
 /**
  *
  * @param {Array<AvalancheDataRaw>} data_raw
@@ -73,6 +81,7 @@ export function preprocessData(data_raw) {
   });
   return data;
 }
+
 
 /**
  * Preprocessed Data

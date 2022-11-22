@@ -2,18 +2,19 @@ import { MainMap } from "./main_map.js";
 import { TimeSelect } from "../shared/timeselect.js";
 import { ToolTip } from "./tooltip.js";
 import * as utils from "../shared/utils.js";
+import { Page,Component } from "../shared/prototype.js";
 
 
 // coordinate tooltip.js, main_map.js, timeselect.js
 
-class Page1 {
+class Page1 extends Page {
   /**
    * 
    * @param {Array<utils.AvalancheData>} data 
    */
   constructor(data) {
     console.log("Init Page 1");
-    this.data = data;
+    super(data);
 
     this.padding = 10;
 
@@ -50,10 +51,13 @@ class Page1 {
       },
     };
 
+    this.aidSelection = this.data.map(d=>d.aid)
+    this.aidFocus = null;
+
     // initialize components
-    this.timeselect = new TimeSelect(this.data, false);
-    this.tooltip = new ToolTip(this.data, false);
-    this.map = new MainMap(this.data, false);
+    this.timeselect = new TimeSelect(this, this.data, false);
+    this.tooltip = new ToolTip(this, this.data, false);
+    this.map = new MainMap(this, this.data, false);
 
     this.components = [this.timeselect,this.tooltip, this.map]
   }

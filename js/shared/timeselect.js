@@ -1,21 +1,26 @@
 // time selection component in P1 and P2
 
 import * as utils from "./utils.js";
+import { Page,Component } from "./prototype.js";
 
 /**
  *  This class creates a time selection component
  */
-class TimeSelect {
+class TimeSelect extends Component {
 
     /**
      * This constructor creates a time selection component with the upper left corner at (x,y)
      * and a specified width and height. If no dimesions are specified, the default is (0,0)
      * for x,y and 500x500 for width and height.
      * 
+     * @param {Page} page
      * @param {Array<utils.AvalancheData>} data 
      * @param {bool} verbose
      */
-    constructor(data, verbose = false) {
+    constructor(page, data, verbose = false) {
+        super(page, data, verbose)
+        this.page = page;
+        
         this.verbose = verbose
         this.dates = { date1: null, date2: null };
         this.margin_bottom = 18;
@@ -52,9 +57,8 @@ class TimeSelect {
         this.data = this.data.sort((a, b) => a.date - b.date);
     }
 
-    log(...msg) {
-        if (this.verbose)
-            console.log(msg)
+    update() {
+        
     }
 
 
@@ -64,8 +68,8 @@ class TimeSelect {
      * @param {d3.Selection} div 
      */
      async render(div) {
+        super.render(div)
         this.log(div)
-        this.dimensions = utils.getDimensions(div);
         console.log(this.dimensions);
 
         //Creating svg to hold the time selection component

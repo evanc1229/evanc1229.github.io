@@ -1,36 +1,36 @@
 // tooltip component in P1
 
 import * as utils from "../shared/utils.js";
+import { Page,Component } from "../shared/prototype.js";
 
 var leaflet = await import("https://cdn.skypack.dev/leaflet");
 import("leaflet").catch((e) => { });
 
 if (L === undefined) L = leaflet;
 
-class ToolTip{
+class ToolTip extends Component {
   /**
    * 
+   * @param {Page} page
    * @param {Array<utils.AvalancheData>} data 
    * @param {bool} verbose 
    */
-  constructor(data, verbose=false){
+  constructor(page, data, verbose=false){
+    super(page, data, verbose);
+    this.page = page
     this.dimensions = {};
     this.data = data;
     this.verbose = verbose
   }
 
   async render(div) {
-    this.div = div;
-    this.dimensions = utils.getDimensions(div);
+    super.render(div)
 
     this.drawbubble();
-    
   }
 
-  log(...msg) {
-    if (this.verbose)
-      console.log(msg)
-  }
+  update() {}
+
 
   drawbubble() {
     let data = this.data;

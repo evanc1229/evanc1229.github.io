@@ -1,25 +1,23 @@
 // main map component in P1
 import * as utils from "../shared/utils.js";
+import { Component, Page } from "../shared/prototype.js";
 
 // var leaflet = await import("https://cdn.skypack.dev/leaflet");
 // import("leaflet").catch((e) => {});
-
 if (L === undefined) L = leaflet;
 
-class MainMap {
+class MainMap extends Component {
   /**
-   *
+   * @param {Page} page
    * @param {Array<utils.AvalancheData>} data
    * @param {bool} verbose
    */
-  constructor(data, verbose = false) {
+  constructor(page, data, verbose = false) {
+    super(page, data, verbose);
+
     this.log("Init Main Map");
+    
     this.dimensions = {};
-
-    this.baseData = data;
-    this.data = this.baseData;
-
-    this.verbose = verbose;
 
     this.init = {
       view: [40.593, -110.984],
@@ -29,48 +27,27 @@ class MainMap {
     };
 
     this.mapId = "map";
+    
+    d3.select(".content")
+      .attr("id", "testbutton")
+      .append("button")
+      .text("Filter Map")
+      .attr("mode", "filter")
+      .attr("font-size", "16pt")
+      .on("click", (e) => {
+        let b = d3.select(e.target);
+        if (b.attr('mode') == 'filter') {
+          this.page.setSelection(utils.range(800,1200))
+          b.attr("mode", "reset").text("Reset Map");
 
-    // XXX: Delete before merge
-    // d3.select(".content")
-    //   .attr("id", "testbutton")
-    //   .append("button")
-    //   .text("filter map")
-    //   .attr("font-size", "16pt")
-    //   .on("click", (e) => {
-    //     this.filterData((d) => d.Date == null || d.Date[0] == "1");
-    //     this.updateNodes();
-    //   })
-    //   .raise();
-  }
-
-  /** Log `msg` to console iff `this.verbose` was set to true
-   *
-   * @param  {...any} msg
-   */
-  log(...msg) {
-    if (this.verbose) console.log(msg);
-  }
-
-  /** Sets current selection of data based on filtering by `criteria`
-   *
-   * @param {(d:utils.AvalancheData)=>bool} criteria
-   */
-  filterData(criteria) {
-    this.data = d3.filter(this.baseData, criteria);
-  }
-
-  /** Transforms the selection of data by applying `func` to each data point
-   *
-   * @param {(d:utils.AvalancheData)=>utils.AvalancheData} func
-   */
-  transformData(func) {
-    this.data = this.data.map(func);
-  }
-
-  /** Undoes any selection or transformation done
-   */
-  restoreData() {
-    this.data = this.baseData;
+        }
+        else {
+          this.page.resetSelection();
+          b.attr("mode", "filter").text("Filter Map");
+        }
+        this.update();
+      })
+      .raise();
   }
 
   /** Converts coordinates of avalanches to geojson points
@@ -152,9 +129,8 @@ class MainMap {
    * @param {d3.Selection} div
    */
   async render(div) {
-    this.div = div;
-    this.dimensions = utils.getDimensions(div);
-
+    super.render(div);
+    
     this.log(this.dimensions);
     this.mapDiv = div
       .append("div")
@@ -196,11 +172,11 @@ class MainMap {
     //   .attr("fill-opacity", 0.3)
     //   .attr("stroke", "black")
     //   .attr("stroke-width", 2.5);
-    // this.updateNodes();
+    // this.update();
 
     // update circle and area positions on zoom
     const onZoom = () => {
-      this.updateNodes();
+      this.update();
       // this.logMapState();
       // this.calcCircleAttrs(this.map);
       // areaPaths.attr("d", pathCreator);
@@ -216,7 +192,7 @@ class MainMap {
     onZoom();
   }
 
-  updateNodes() {
+  update() {
     // HACK: totally random numbers
     let rn = Math.pow(this.map.getZoom(), 2);
     let rd = Math.pow(this.init.zoom, 2) / this.init.radius;
