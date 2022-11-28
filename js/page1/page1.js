@@ -2,15 +2,14 @@ import { MainMap } from "./main_map.js";
 import { TimeSelect } from "../shared/timeselect.js";
 import { ToolTip } from "./tooltip.js";
 import * as utils from "../shared/utils.js";
-import { Page,Component } from "../shared/prototype.js";
-
+import { Page, Component } from "../shared/prototype.js";
 
 // coordinate tooltip.js, main_map.js, timeselect.js
 
 class Page1 extends Page {
   /**
-   * 
-   * @param {Array<utils.AvalancheData>} data 
+   *
+   * @param {Array<utils.AvalancheData>} data
    */
   constructor(data) {
     console.log("Init Page 1");
@@ -51,7 +50,7 @@ class Page1 extends Page {
       },
     };
 
-    this.aidSelection = this.data.map(d=>d.aid)
+    this.aidSelection = this.data.map((d) => d.aid);
     this.aidFocus = null;
 
     // initialize components
@@ -59,7 +58,7 @@ class Page1 extends Page {
     this.tooltip = new ToolTip(this, this.data, false);
     this.map = new MainMap(this, this.data, false);
 
-    this.components = [this.timeselect,this.tooltip, this.map]
+    this.components = [this.timeselect, this.tooltip, this.map];
   }
 
   async render() {
@@ -72,7 +71,7 @@ class Page1 extends Page {
       .style("height", `${this.dimensions.timeselect.height}px`)
       .style("left", `${this.positions.timeselect.x}px`)
       .style("top", `${this.positions.timeselect.y}px`)
-      .classed('my-2', true)
+      .classed("my-2", true);
 
     // .style("position", "absolute");
 
@@ -83,8 +82,8 @@ class Page1 extends Page {
       .style("height", `${this.dimensions.map.height}px`)
       .style("left", `${this.positions.map.x}px`)
       .style("top", `${this.positions.map.y}px`)
-      .classed('mb-5', true)
-      // .style("position", "absolute");
+      .classed("mb-5", true);
+    // .style("position", "absolute");
 
     let ttDiv = div
       .append("div")

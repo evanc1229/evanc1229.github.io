@@ -2,9 +2,10 @@
 import * as utils from "../shared/utils.js";
 import { Component, Page } from "../shared/prototype.js";
 
-// var leaflet = await import("https://cdn.skypack.dev/leaflet");
-// import("leaflet").catch((e) => {});
+var leaflet = await import("https://cdn.skypack.dev/leaflet");
+import("leaflet").catch((e) => {});
 if (L === undefined) L = leaflet;
+
 
 class MainMap extends Component {
   /**
@@ -16,7 +17,7 @@ class MainMap extends Component {
     super(page, data, verbose);
 
     this.log("Init Main Map");
-    
+
     this.dimensions = {};
 
     this.init = {
@@ -27,7 +28,7 @@ class MainMap extends Component {
     };
 
     this.mapId = "map";
-    
+
     d3.select(".content")
       .attr("id", "testbutton")
       .append("button")
@@ -36,12 +37,10 @@ class MainMap extends Component {
       .attr("font-size", "16pt")
       .on("click", (e) => {
         let b = d3.select(e.target);
-        if (b.attr('mode') == 'filter') {
-          this.page.setSelection(utils.range(800,1200))
+        if (b.attr("mode") == "filter") {
+          this.page.setSelection(utils.range(800, 1200));
           b.attr("mode", "reset").text("Reset Map");
-
-        }
-        else {
+        } else {
           this.page.resetSelection();
           b.attr("mode", "filter").text("Filter Map");
         }
@@ -130,7 +129,7 @@ class MainMap extends Component {
    */
   async render(div) {
     super.render(div);
-    
+
     this.log(this.dimensions);
     this.mapDiv = div
       .append("div")
@@ -138,14 +137,15 @@ class MainMap extends Component {
       .style("width", `${this.dimensions.width}px`)
       .style("height", `${this.dimensions.height}px`);
 
+    // setup overlay
     let map = this.initMap("google_terrain");
     let overlay = this.initOverlay(map);
 
-    this.map_svg = overlay
+    this.mapSvg = overlay
       .select("svg")
       .attr("pointer-events", "auto")
       .classed("leaflet-zoom-hide", true);
-    this.map_svg.append("g");
+    this.mapSvg.append("g");
 
     // convert from lat/long to a point on the leaflet map
     // const projectToMap = function (x, y) {
@@ -195,10 +195,11 @@ class MainMap extends Component {
   update() {
     // HACK: totally random numbers
     let rn = Math.pow(this.map.getZoom(), 2);
+
     let rd = Math.pow(this.init.zoom, 2) / this.init.radius;
     let r = rn / rd;
 
-    let coord_map = this.data.reduce((obj, d) => {
+    let coordMap = this.data.reduce((obj, d) => {
       let p = this.map.latLngToLayerPoint([d.coordinates[1], d.coordinates[0]]);
 
       obj[d.aid] = {
@@ -222,7 +223,7 @@ class MainMap extends Component {
       c.transition().duration("150").attr("r", c.attr("fixed-r"));
     };
 
-    this.incidentNodes = this.map_svg
+    this.incidentNodes = this.mapSvg
       .select("g")
       .selectAll("circle")
       .data(this.data, (d) => d.aid)
@@ -230,8 +231,8 @@ class MainMap extends Component {
         (enter) => {
           return enter
             .append("circle")
-            .attr("cx", (d) => coord_map[d.aid].x)
-            .attr("cy", (d) => coord_map[d.aid].y)
+            .attr("cx", (d) => coordMap[d.aid].x)
+            .attr("cy", (d) => coordMap[d.aid].y)
             .attr("fixed-r", r)
             .attr("r", r)
             .attr("stroke", "black")
@@ -244,8 +245,8 @@ class MainMap extends Component {
         (update) => {
           return update
             .attr("fill", "blue")
-            .attr("cx", (d) => coord_map[d.aid].x)
-            .attr("cy", (d) => coord_map[d.aid].y)
+            .attr("cx", (d) => coordMap[d.aid].x)
+            .attr("cy", (d) => coordMap[d.aid].y)
             .attr("fixed-r", r)
             .attr("r", r);
         },
@@ -267,13 +268,6 @@ class MainMap extends Component {
     };
     this.log(mapState);
   }
-
-  /** Calculates and sets correct x,y coordinates and radius for selection of circles
-   *
-   * @param {d3.Selection} c
-   * @param {L.map} map
-   */
-  calcCircleAttrs(map) {}
 
   initLayers() {
     // chosen from: https://leaflet-extras.github.io/leaflet-providers/preview/
