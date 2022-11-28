@@ -68,7 +68,7 @@ class TimeSelect extends Component {
      * @param {d3.Selection} div 
      */
      async render(div) {
-        let areaChart = false; 
+        let barSelect = false; 
         super.render(div)
         this.log(div)
 
@@ -87,6 +87,10 @@ class TimeSelect extends Component {
         let selectors = svg
             .append('g')
             .attr('id', 'ts-selectors');
+
+        let brush = svg
+            .append('g')
+            .attr('id', 'ts-brush');
 
         //Appending Line Selectors to the Selector Group
         selectors
@@ -160,122 +164,136 @@ class TimeSelect extends Component {
             .attr('height', d => this.dimensions.height - this.margin_bottom - yScale(d.count))
             .attr('fill', 'lightblue')
             .attr('stroke', 'lightblue');
+        
+        //Adding a brush to the chart
+        let brusher = d3.brushX()
+            .extent([[this.margin_left*2, 0], [this.dimensions.width - this.margin_left, this.dimensions.height - this.margin_bottom]])
+            .on('end', (event) => {
+                let selection = event.selection;
+                let aids = [];
+                if (selection) {             
+                    //Getting the selected dates and getting rid of time values
+                    let date1 = new Date(xScale.invert(selection[0]).toDateString());
+                    let date2 = new Date(xScale.invert(selection[1]).toDateString());
+                    
+                    let date1Index = this.data.findIndex((d) => d.date.getTime() === date1.getTime());
+                    let date2Index = this.data.findIndex((d) => d.date.getTime() === date2.getTime());
 
-        //TODO: Remove this once axis are added
-        let text =
-            svg.append('text')
-                .attr('x', this.dimensions.width / 3)
-                .attr('y', 20)
-                .attr('id', 'timeselect-text')
-                .attr('font-size', '10px')
-                .attr('font-family', 'sans-serif')
-                .attr('font-weight', 'bold')
-                .attr('fill', 'black')
-                .text(`(Demonstration Purposes Only) Click on a bar, then another bar`)
-                .raise();
 
-        svg.on('click', (e) => {
-            let line1 = d3.select('#ts-line1');
-            let line2 = d3.select('#ts-line2');
-            if (e.offsetX > this.margin_left && e.offsetX < this.dimensions.width) {
-                // Is timeselect in the default state?
-                if (!line1.classed('active') && !line2.classed('active')) {
-                    // If it is, when clicked we need to start moving select 1
-                    if (!line1.classed('moving')) {
+                    for (let i = date1Index; i <= date2Index; i++) {
+                        aids = aids.concat(this.data[i].aids);
+                    }
+                }
+                this.log('The selected AIDs are:');
+                this.log(aids);
+                //this.page.setSelection(aids);
+            });
+        brush.call(brusher);
+
+
+        // DEPRECATED: This is the old way of selecting dates
+        if (barSelect === true) {
+            svg.on('click', (e) => {
+                let line1 = d3.select('#ts-line1');
+                let line2 = d3.select('#ts-line2');
+                if (e.offsetX > this.margin_left && e.offsetX < this.dimensions.width) {
+                    // Is timeselect in the default state?
+                    if (!line1.classed('active') && !line2.classed('active')) {
+                        // If it is, when clicked we need to start moving select 1
+                        if (!line1.classed('moving')) {
+                            line1
+                                .attr('x1', e.offsetX)
+                                .attr('x2', e.offsetX)
+                                .attr('visibility', 'visible')
+                                .classed('moving', true);
+                        }
+                        else {
+                            // If select 1 is already moving, stop and and grab the date
+                            line1
+                                .classed('moving', false)
+                                .classed('active', true);
+                            this.dates.date1 = xScale.invert(e.offsetX);
+                        }
+                    }
+                    else if (line1.classed('active') && !line2.classed('active')) {
+
+                        // If select 1 is active, but select 2 is not, when clicked we need to start moving select 2
+                        if (!line2.classed('moving')) {
+                            line2
+                                .attr('x1', e.offsetX)
+                                .attr('x2', e.offsetX)
+                                .attr('visibility', 'visible')
+                                .classed('moving', true);
+                        }
+                        else if (e.offsetX > line1.attr('x1')) {
+                            // If select 2 is already moving, stop and and grab the date
+                            line2
+                                .classed('moving', false)
+                                .classed('active', true)
+                            this.dates.date2 = xScale.invert(e.offsetX);
+                        }
+                        else if (e.offsetX < line1.attr('x1')) {
+                            // If select 2 is to the left of select 1, swap them
+                            line2
+                                .classed('moving', false)
+                                .classed('active', true)
+                            this.dates.date2 = this.dates.date1;
+                            this.dates.date1 = xScale.invert(e.offsetX);
+                        }
+                        else {
+                            // If select 2 and select 1 are the same then throw and error and do nothing
+                            chart
+                                .select('path')
+                                .transition()
+                                .duration(100)
+                                .attr('stroke', 'red')
+                                .attr('fill', 'red')
+                                .transition()
+                                .duration(100)
+                                .attr('stroke', 'lightblue')
+                                .attr('fill', 'lightblue');
+                        }
+                    }
+                    else if (line1.classed('active') && line2.classed('active')) {
+                        // If both are active, reset the chart
                         line1
+                            .attr('x1', 0)
+                            .attr('x2', 0)
+                            .attr('visibility', 'hidden')
+                            .classed('active', false)
+                            .classed('moving', false);
+
+                        line2
+                            .attr('x1', 0)
+                            .attr('x2', 0)
+                            .attr('visibility', 'hidden')
+                            .classed('active', false)
+                            .classed('moving', false);
+                        this.dates.date1 = null;
+                        this.dates.date2 = null;
+                    }
+                    text
+                        .text(`(Demonstration Purposes Only) Selection type: ${this.dates.date1 && this.dates.date2 ? 'range' : 'single'} , Start date: ${this.dates.date1 ? this.dates.date1.toDateString() : 'null'}, End date: ${this.dates.date2 ? this.dates.date2.toDateString() : 'null'}`)
+                    this.log(this.getDates());
+                }
+            });
+
+            //Allows Selection elements to move when mouse is dragged and they are in the moving state
+            svg.on('mousemove', (e) => {
+                if (e.offsetX > this.margin_left && e.offsetX < this.dimensions.width) {
+                    if (d3.select('#ts-line1').classed('moving')) {
+                        d3.select('#ts-line1')
                             .attr('x1', e.offsetX)
-                            .attr('x2', e.offsetX)
-                            .attr('visibility', 'visible')
-                            .classed('moving', true);
+                            .attr('x2', e.offsetX);
                     }
-                    else {
-                        // If select 1 is already moving, stop and and grab the date
-                        line1
-                            .classed('moving', false)
-                            .classed('active', true);
-                        this.dates.date1 = xScale.invert(e.offsetX);
-                    }
-                }
-                else if (line1.classed('active') && !line2.classed('active')) {
-
-                    // If select 1 is active, but select 2 is not, when clicked we need to start moving select 2
-                    if (!line2.classed('moving')) {
-                        line2
+                    else if (d3.select('#ts-line2').classed('moving')) {
+                        d3.select('#ts-line2')
                             .attr('x1', e.offsetX)
-                            .attr('x2', e.offsetX)
-                            .attr('visibility', 'visible')
-                            .classed('moving', true);
-                    }
-                    else if (e.offsetX > line1.attr('x1')) {
-                        // If select 2 is already moving, stop and and grab the date
-                        line2
-                            .classed('moving', false)
-                            .classed('active', true)
-                        this.dates.date2 = xScale.invert(e.offsetX);
-                    }
-                    else if (e.offsetX < line1.attr('x1')) {
-                        // If select 2 is to the left of select 1, swap them
-                        line2
-                            .classed('moving', false)
-                            .classed('active', true)
-                        this.dates.date2 = this.dates.date1;
-                        this.dates.date1 = xScale.invert(e.offsetX);
-                    }
-                    else {
-                        // If select 2 and select 1 are the same then throw and error and do nothing
-                        chart
-                            .select('path')
-                            .transition()
-                            .duration(100)
-                            .attr('stroke', 'red')
-                            .attr('fill', 'red')
-                            .transition()
-                            .duration(100)
-                            .attr('stroke', 'lightblue')
-                            .attr('fill', 'lightblue');
+                            .attr('x2', e.offsetX);
                     }
                 }
-                else if (line1.classed('active') && line2.classed('active')) {
-                    // If both are active, reset the chart
-                    line1
-                        .attr('x1', 0)
-                        .attr('x2', 0)
-                        .attr('visibility', 'hidden')
-                        .classed('active', false)
-                        .classed('moving', false);
-
-                    line2
-                        .attr('x1', 0)
-                        .attr('x2', 0)
-                        .attr('visibility', 'hidden')
-                        .classed('active', false)
-                        .classed('moving', false);
-                    this.dates.date1 = null;
-                    this.dates.date2 = null;
-                }
-                text
-                    .text(`(Demonstration Purposes Only) Selection type: ${this.dates.date1 && this.dates.date2 ? 'range' : 'single'} , Start date: ${this.dates.date1 ? this.dates.date1.toDateString() : 'null'}, End date: ${this.dates.date2 ? this.dates.date2.toDateString() : 'null'}`)
-                this.log(this.getDates());
-            }
-
-            // TODO: dispatch events, listeners should call .getDates() and update themselves
-        });
-
-        //Allows Selection elements to move when mouse is dragged and they are in the moving state
-        svg.on('mousemove', (e) => {
-            if (e.offsetX > this.margin_left && e.offsetX < this.dimensions.width) {
-                if (d3.select('#ts-line1').classed('moving')) {
-                    d3.select('#ts-line1')
-                        .attr('x1', e.offsetX)
-                        .attr('x2', e.offsetX);
-                }
-                else if (d3.select('#ts-line2').classed('moving')) {
-                    d3.select('#ts-line2')
-                        .attr('x1', e.offsetX)
-                        .attr('x2', e.offsetX);
-                }
-            }
-        });
+            });
+        }
     }
 
     /**
