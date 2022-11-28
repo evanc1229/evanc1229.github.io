@@ -34,6 +34,7 @@ class ToolTip extends Component {
 
   drawbubble() {
     let data = this.data;
+
     let parseFeetFromString = x => parseFloat(x.slice(0, x.length - 1).replace(',', '') / (x.endsWith('"') ? 12 : 1));
 
     
@@ -43,14 +44,16 @@ class ToolTip extends Component {
         .attr('height', this.dimensions.height+100)
         .attr('id', 'tooltip_svg');
     //let sortedWidth = widthData.sort(d3.ascending)
-    Array.from(['elevation','width', 'vertical','depth']).reduce((obj, k) => {
-      let dk = data.map(d => parseFeetFromString(d[k]))
+    Array.from(['elevation','width', 'vertical']).reduce((obj, k) => {
+      let dk1 = data.map(d => parseFeetFromString(d[k]))
+      let toRemove = [0]
+      let dk = dk1.filter(function(el){return !toRemove.includes(el) })
       dk.sort(d3.ascending)
       this.log(dk)
       obj[k] = {
-        q1: d3.quantile(dk, .25)/5,
-        q2: d3.quantile(dk, .5)/5,
-        q3: d3.quantile(dk, .75)/5
+        q1: d3.quantile(dk, .25),
+        q2: d3.quantile(dk, .5),
+        q3: d3.quantile(dk, .75)
       }
       this.log(obj[k].q1)
       this.log(obj[k].q2)
@@ -67,7 +70,7 @@ class ToolTip extends Component {
       // Show the X scale
       var x = d3.scaleBand()
         .range([0, this.dimensions.width])
-        .domain(["elevation","width", "vertical", "depth"])
+        .domain(["elevation","width", "vertical"])
         .paddingInner(1)
         .paddingOuter(.5)
       svg2.append("g")
@@ -93,6 +96,7 @@ class ToolTip extends Component {
         .attr("y2", function (d) { return (y(max)) })
         .attr("stroke", "black")
         .style("width", 40)
+        
 
       // Show the box
       var boxWidth = 100
@@ -119,20 +123,66 @@ class ToolTip extends Component {
         .attr("y2", function(d){return(y(d))})
         .attr("stroke", "black")
         
+      svg2
+        .append("text")
+        .data(dk)
+        .attr("x", function (d) { return (x(k)-50)})
+        .attr("y", function (d) { return (y(min)) })
+        .style("fill", "black")
+        .text(function(d){return(Math.trunc(min))}) 
+
+        svg2
+        .append("text")
+        .data(dk)
+        .attr("x", function (d) { return (x(k)-50)})
+        .attr("y", function (d) { return (y(max))+13 })
+        .style("fill", "black")
+        .text(function(d){return(Math.trunc(max))}) 
+      
+        svg2
+        .append("text")
+        .data(dk)
+        .attr("x", function (d) { return (x(k)-50)})
+        .attr("y", function (d) { return (y(obj[k].q2)) })
+        .style("fill", "black")
+        .text(function(d){return(Math.trunc(obj[k].q2))})
         
+        svg2
+        .append("text")
+        .data(dk)
+        .attr("x", function (d) { return (x(k)-50)})
+        .attr("y", function (d) { return (y(obj[k].q1)) })
+        .style("fill", "black")
+        .text(function(d){return(Math.trunc(obj[k].q1))}) 
+
+        svg2
+        .append("text")
+        .data(dk)
+        .attr("x", function (d) { return (x(k)-50)})
+        .attr("y", function (d) { return (y(obj[k].q3)) })
+        .style("fill", "black")
+        .text(function(d){return(Math.trunc(obj[k].q3))}) 
 
         var jitterWidth = 50
         
       svg2
         .selectAll("indPoints")
-        .data(data)
+        .data(dk)
         .enter()
         .append("circle")
         .attr("cx", function(d){return(x(k))})
         .attr("cy", function(d){return(y(dk[3000]))})
-        .attr("r", 4)
+        .attr("r", 5)
         .style("fill", "white")
         .attr("stroke", "black")
+
+      svg2
+        .append("text")
+        .data(dk)
+        .attr("x", function(d){return(x(k)+10)})
+        .attr("y", function(d){return(y(dk[3000]))})
+        .style("fill", "black")
+        .text(function(d){return(Math.trunc(dk[3000]))})
         
       return obj
     }, {})
