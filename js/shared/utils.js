@@ -23,12 +23,12 @@ export function getDimensions(selection) {
   return selection.node().getBoundingClientRect();
 }
 
-export function range(x,y) {
-    // stolen from: https://stackoverflow.com/questions/3895478/does-javascript-have-a-method-like-range-to-generate-a-range-within-the-supp
-    if (x>y) {
-        return [];
-    }
-    else return [x, ...range(x+1,y)];
+export function range(x, y) {
+  // stolen from: https://stackoverflow.com/questions/3895478/does-javascript-have-a-method-like-range-to-generate-a-range-within-the-supp
+  if (x > y) {
+    return [];
+  }
+  else return [x, ...range(x + 1, y)];
 }
 
 /**
@@ -41,10 +41,13 @@ export function preprocessData(data_raw) {
 
   let data = data_raw.map((d, i) => {
     let coordinates = [0, 0];
+
     if (d.Coordinates.length > 0)
       coordinates = d.Coordinates.split(", ")
         .map((c) => parseFloat(c))
         .reverse();
+
+    d.Date = new Date(d.Date) != "Invalid Date" ? new Date(d.Date) : null;
 
     return {
       aid: i,
@@ -79,6 +82,10 @@ export function preprocessData(data_raw) {
       ],
     };
   });
+
+  //Filterin out invalid dates and avalanches prior to 2010
+  data = data.filter((d) => d.date != null && d.date.getFullYear() >= 2010);
+
   return data;
 }
 

@@ -1,5 +1,4 @@
 // time selection component in P1 and P2
-
 import * as utils from "./utils.js";
 import { Page,Component } from "./prototype.js";
 
@@ -7,7 +6,6 @@ import { Page,Component } from "./prototype.js";
  *  This class creates a time selection component
  */
 class TimeSelect extends Component {
-
     /**
      * This constructor creates a time selection component with the upper left corner at (x,y)
      * and a specified width and height. If no dimesions are specified, the default is (0,0)
@@ -21,40 +19,42 @@ class TimeSelect extends Component {
         super(page, data, verbose)
         this.page = page;
         
-        this.verbose = verbose
-        this.dates = { date1: null, date2: null };
+        this.verbose = verbose // This dictates whether or not the component will print to the console
+        this.dates = { date1: null, date2: null }; // This is the object that will store the dates
+
+        // Setting some constants
         this.margin_bottom = 18;
         this.margin_left = 15;
-        this.data = data;
 
-        //preprocess the data
-        this.data.forEach((d) => {
-            d.date = new Date(d.date) != "Invalid Date" ? new Date(d.date) : null; //first filter out invalid dates
-        });
+        this.data = data; // This is the data that will be used to create the time selection component
 
-        //Group the data by length per date and convert to an array of objects
-        this.data = Array.from(d3.rollup(this.data, v => v.length, d => d.date));
+        //Grouping the data by length per date and convert to an array of objects
+        this.data = Array.from(d3.rollup(this.data, v => {
+            let aids = [];
+            v.forEach(d => aids.push(d.aid));
+            return [v.length, aids];
+        }, d => d.date));
 
+        //Converting this.data back to a list of objects
         this.data = this.data.map((d) => {
             return {
                 date: (d[0]),
-                count: d[1]
+                aids : d[1][1],
+                count: d[1][0]
             };
         });
 
-        //Filter out the null dates and dates prior to 2010
-        this.data = this.data.filter((d) => d.date != null && d.date.getFullYear() >= 2010);
-
-        //Adding missing dates by creating a new array of dates and joining it with the data
         let dates = d3.timeDays(d3.min(this.data, d => d.date), d3.max(this.data, d => d.date));
 
         dates.forEach((d) => {
             if (!this.data.some((e) => e.date.getTime() === d.getTime())) {
-                this.data.push({ date: d, count: 0 });
+                this.data.push({ date: d, aids: [], count: 0 });
             }
         });
 
         this.data = this.data.sort((a, b) => a.date - b.date);
+
+        this.log(this.data);
     }
 
     update() {
@@ -68,9 +68,9 @@ class TimeSelect extends Component {
      * @param {d3.Selection} div 
      */
      async render(div) {
+        let areaChart = false; 
         super.render(div)
         this.log(div)
-        console.log(this.dimensions);
 
         //Creating svg to hold the time selection component
         let svg = div
@@ -120,10 +120,10 @@ class TimeSelect extends Component {
             .domain([0, Math.sqrt(d3.max(this.data, d => d.count))]) //Square root scale to make the graph more readable
             .range([this.dimensions.height - this.margin_bottom, 0]);
 
-        let areaGenerator = d3.area()
-            .x(d => xScale(d.date))
-            .y1(d => yScale(d.count))
-            .y0(yScale(0));
+        let xBarScale = d3.scaleBand()
+                .domain(this.data.map(d => d.date))
+                .range([this.margin_left*2, this.dimensions.width - this.margin_left])
+                .padding(0.1);
 
         //Adding Axis
         let xAxis = d3.axisBottom(xScale)
@@ -149,11 +149,15 @@ class TimeSelect extends Component {
             .attr('stroke-width', 1)
             .attr('stroke', 'black');
 
-
+        //Plotting the bars
         chart
-            .append('path')
-            .datum(this.data)
-            .attr('d', areaGenerator)
+            .selectAll('rect')
+            .data(this.data)
+            .join('rect')
+            .attr('x', d => xBarScale(d.date))
+            .attr('y', d => yScale(d.count))
+            .attr('width', xBarScale.bandwidth())
+            .attr('height', d => this.dimensions.height - this.margin_bottom - yScale(d.count))
             .attr('fill', 'lightblue')
             .attr('stroke', 'lightblue');
 
