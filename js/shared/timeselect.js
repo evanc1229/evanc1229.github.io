@@ -17,26 +17,22 @@ class TimeSelect extends Component {
      */
     constructor(page, data, verbose = false) {
         super(page, data, verbose)
-        this.page = page;
 
-        this.verbose = verbose // This dictates whether or not the component will print to the console
         this.dates = { date1: null, date2: null }; // This is the object that will store the dates
 
         // Setting some constants
         this.margin_bottom = 18;
         this.margin_left = 15;
 
-        this.data = data; // This is the data that will be used to create the time selection component
-
         //Grouping the data by length per date and convert to an array of objects
-        this.data = Array.from(d3.rollup(this.data, v => {
+        this.dateIndexedData = Array.from(d3.rollup(this.data, v => {
             let aids = [];
             v.forEach(d => aids.push(d.aid));
             return [v.length, aids];
         }, d => d.date));
 
-        //Converting this.data back to a list of objects
-        this.data = this.data.map((d) => {
+        //Converting this.dateIndexedData back to a list of objects
+        this.dateIndexedData = this.dateIndexedData.map((d) => {
             return {
                 date: (d[0]),
                 aids: d[1][1],
@@ -46,19 +42,19 @@ class TimeSelect extends Component {
 
 
         // Creating a list of all the dates in the data set + missing dates
-        let dates = d3.timeDays(d3.min(this.data, d => d.date), d3.max(this.data, d => d.date));
+        let dates = d3.timeDays(d3.min(this.dateIndexedData, d => d.date), d3.max(this.dateIndexedData, d => d.date));
 
         // Joining the dataset with the list of all dates
         dates.forEach((d) => {
-            if (!this.data.some((e) => e.date.getTime() === d.getTime())) {
-                this.data.push({ date: d, aids: [], count: 0 });
+            if (!this.dateIndexedData.some((e) => e.date.getTime() === d.getTime())) {
+                this.dateIndexedData.push({ date: d, aids: [], count: 0 });
             }
         });
 
-        this.data = this.data.sort((a, b) => a.date - b.date);
+        this.dateIndexedData = this.dateIndexedData.sort((a, b) => a.date - b.date);
     }
 
-    update() { }
+    update() {}
 
 
     /**
@@ -73,15 +69,15 @@ class TimeSelect extends Component {
 
         //Creating scales
         let xScale = d3.scaleTime()
-            .domain(d3.extent(this.data, d => d.date))
+            .domain(d3.extent(this.dateIndexedData, d => d.date))
             .range([this.margin_left * 2, this.dimensions.width - this.margin_left]);
 
         let yScale = d3.scaleLinear()
-            .domain([0, Math.sqrt(d3.max(this.data, d => d.count))]) //Square root scale to make the graph more readable
+            .domain([0, Math.sqrt(d3.max(this.dateIndexedData, d => d.count))]) //Square root scale to make the graph more readable
             .range([this.dimensions.height - this.margin_bottom, 0]);
 
         let xBarScale = d3.scaleBand()
-            .domain(this.data.map(d => d.date))
+            .domain(this.dateIndexedData.map(d => d.date))
             .range([this.margin_left * 2, this.dimensions.width - this.margin_left])
             .padding(0.1);
 
@@ -185,7 +181,7 @@ class TimeSelect extends Component {
         //Plotting the bars
         chart
             .selectAll('rect')
-            .data(this.data)
+            .data(this.dateIndexedData)
             .join('rect')
             .attr('x', d => xBarScale(d.date))
             .attr('y', d => yScale(d.count))
@@ -226,12 +222,12 @@ class TimeSelect extends Component {
                     let date1 = new Date(xScale.invert(selection[0]).toDateString());
                     let date2 = new Date(xScale.invert(selection[1]).toDateString());
 
-                    let date1Index = this.data.findIndex((d) => d.date.getTime() === date1.getTime());
-                    let date2Index = this.data.findIndex((d) => d.date.getTime() === date2.getTime());
+                    let date1Index = this.dateIndexedData.findIndex((d) => d.date.getTime() === date1.getTime());
+                    let date2Index = this.dateIndexedData.findIndex((d) => d.date.getTime() === date2.getTime());
 
 
                     for (let i = date1Index; i <= date2Index; i++) {
-                        aids = aids.concat(this.data[i].aids);
+                        aids = aids.concat(this.dateIndexedData[i].aids);
                     }
                 }
                 this.log('The selected AIDs are:');
@@ -245,6 +241,5 @@ class TimeSelect extends Component {
             });
         brush.call(brusher);
     }
-
 }
 export { TimeSelect };
