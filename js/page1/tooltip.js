@@ -26,13 +26,14 @@ class ToolTip extends Component {
   async render(div) {
     super.render(div)
 
-    this.drawbubble();
+    this.drawBoxChart();
   }
 
   update() {}
 
 
-  drawbubble() {
+  drawBoxChart() {
+  
     let data = this.data;
 
     let parseFeetFromString = x => parseFloat(x.slice(0, x.length - 1).replace(',', '') / (x.endsWith('"') ? 12 : 1));
@@ -42,6 +43,8 @@ class ToolTip extends Component {
         .append('svg')
         .attr('width', this.dimensions.width+100)
         .attr('height', this.dimensions.height+100)
+        .style('opacity', 1)
+        .style('position', 'absolute')
         .attr('id', 'tooltip_svg');
     //let sortedWidth = widthData.sort(d3.ascending)
     Array.from(['elevation','width', 'vertical']).reduce((obj, k) => {
@@ -49,21 +52,16 @@ class ToolTip extends Component {
       let toRemove = [0]
       let dk = dk1.filter(function(el){return !toRemove.includes(el) })
       dk.sort(d3.ascending)
-      this.log(dk)
       obj[k] = {
         q1: d3.quantile(dk, .25),
         q2: d3.quantile(dk, .5),
         q3: d3.quantile(dk, .75)
       }
-      this.log(obj[k].q1)
-      this.log(obj[k].q2)
-      this.log(obj[k].q3)
       let interQuantileRange= obj[k].q3-obj[k].q1
       let min = obj[k].q1 -1.5 *interQuantileRange
       let max=  obj[k].q3 + 1.5 * interQuantileRange
-      this.log(interQuantileRange)
-      this.log(min)
-      this.log(max)
+      
+      if(min <0){min = 0}
       
 
       
@@ -129,7 +127,7 @@ class ToolTip extends Component {
         .attr("x", function (d) { return (x(k)-50)})
         .attr("y", function (d) { return (y(min)) })
         .style("fill", "black")
-        .text(function(d){return(Math.trunc(min))}) 
+        .text(function(d){return(Math.trunc(min)) + "'"}) 
 
         svg2
         .append("text")
@@ -137,7 +135,7 @@ class ToolTip extends Component {
         .attr("x", function (d) { return (x(k)-50)})
         .attr("y", function (d) { return (y(max))+13 })
         .style("fill", "black")
-        .text(function(d){return(Math.trunc(max))}) 
+        .text(function(d){return(Math.trunc(max))+ "'"}) 
       
         svg2
         .append("text")
@@ -145,7 +143,7 @@ class ToolTip extends Component {
         .attr("x", function (d) { return (x(k)-50)})
         .attr("y", function (d) { return (y(obj[k].q2)) })
         .style("fill", "black")
-        .text(function(d){return(Math.trunc(obj[k].q2))})
+        .text(function(d){return(Math.trunc(obj[k].q2))+ "'"})
         
         svg2
         .append("text")
@@ -153,7 +151,7 @@ class ToolTip extends Component {
         .attr("x", function (d) { return (x(k)-50)})
         .attr("y", function (d) { return (y(obj[k].q1)) })
         .style("fill", "black")
-        .text(function(d){return(Math.trunc(obj[k].q1))}) 
+        .text(function(d){return(Math.trunc(obj[k].q1))+ "'"}) 
 
         svg2
         .append("text")
@@ -161,7 +159,7 @@ class ToolTip extends Component {
         .attr("x", function (d) { return (x(k)-50)})
         .attr("y", function (d) { return (y(obj[k].q3)) })
         .style("fill", "black")
-        .text(function(d){return(Math.trunc(obj[k].q3))}) 
+        .text(function(d){return(Math.trunc(obj[k].q3))+ "'"}) 
 
         var jitterWidth = 50
         
@@ -182,11 +180,21 @@ class ToolTip extends Component {
         .attr("x", function(d){return(x(k)+10)})
         .attr("y", function(d){return(y(dk[3000]))})
         .style("fill", "black")
-        .text(function(d){return(Math.trunc(dk[3000]))})
+        .text(function(d){return(Math.trunc(dk[3000]))+ "'"})
         
       return obj
     }, {})
+  }
 
+  showToolTip()
+  {
+    let tool = d3.select("tooltip_svg");
+    tool.attr('opacity', 1);
+  }
+  hideToolTip()
+  {
+    let tool = d3.select("tooltip_svg");
+    tool.attr('opacity', 0);
   }
 
 }
