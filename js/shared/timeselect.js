@@ -15,7 +15,7 @@ class TimeSelect extends Component {
      * @param {Array<utils.AvalancheData>} data 
      * @param {bool} verbose
      */
-    constructor(page, data, verbose = false) {
+    constructor(page, data, verbose = false, flipped = false) {
         super(page, data, verbose)
 
         this.margin_bottom = 18;
@@ -60,11 +60,12 @@ class TimeSelect extends Component {
         super.render(div);
 
         let dimensions = this.dimensions;
+        let margin_left = this.margin_left;
 
         //Creating scales
         let xScale = d3.scaleTime()
             .domain(d3.extent(this.dateIndexedData, d => d.date))
-            .range([this.margin_left * 2, this.dimensions.width - this.margin_left]);
+            .range([this.margin_left*2, this.dimensions.width - this.margin_left]);
 
         //Using sysmlog scale to make the bars more visible and because zero is a part of the dataset 
         let yScale = d3.scaleSymlog()
@@ -73,7 +74,7 @@ class TimeSelect extends Component {
 
         let xBarScale = d3.scaleBand()
             .domain(this.dateIndexedData.map(d => d.date))
-            .range([this.margin_left, this.dimensions.width - this.margin_left])
+            .range([this.margin_left*2, this.dimensions.width - this.margin_left])
             .padding(0.1);
 
         //Creating axes
@@ -95,7 +96,7 @@ class TimeSelect extends Component {
         */
         let zoom = function (svg) {
             let extent = [
-                [0, 0],
+                [0,0],
                 [dimensions.width, dimensions.height]
             ];
 
@@ -106,7 +107,7 @@ class TimeSelect extends Component {
                 .on("zoom", zoomed));
 
             function zoomed(event) {
-                xScale.range([0, dimensions.width].map(d => event.transform.applyX(d)));
+                xScale.range([margin_left*2, dimensions.width - margin_left].map(d => event.transform.applyX(d)));
                 if (event.transform.k < 10) {
                     svg.selectAll(".ts-bar").attr("x", d => xScale(d.date)).attr("width", xBarScale.bandwidth());
                     svg.selectAll("#ts-xaxis").call(xAxisLarge);
@@ -174,20 +175,7 @@ class TimeSelect extends Component {
             .append('g')
             .attr('id', 'ts-xaxis')
             .attr('transform', `translate(0, ${this.dimensions.height - this.margin_bottom})`)
-            .call(xAxisLarge)
-            .call(g => g.select(".domain").remove());
-
-        //Adding a transparent rectangle to the svg to add a border
-        svg
-            .append('rect')
-            .attr('x', this.margin_left)
-            .attr('y', 0)
-            .attr('rx', 5)
-            .attr('width', this.dimensions.width)
-            .attr('height', this.dimensions.height - this.margin_bottom)
-            .attr('fill', 'none')
-            .attr('stroke-width', 1)
-            .attr('stroke', 'black');
+            .call(xAxisLarge);
 
         //Plotting the bars
         chart
@@ -196,7 +184,7 @@ class TimeSelect extends Component {
             .join('rect')
             .classed('ts-bar', true)
             .attr('x', d => xBarScale(d.date))
-            .attr('y', d => yScale(d.count))
+            .attr('y', d => yScale(d.count)-1)
             .attr('width', xBarScale.bandwidth())
             .attr('height', d => this.dimensions.height - this.margin_bottom - yScale(d.count))
             .attr('fill', 'lightblue')
@@ -204,7 +192,7 @@ class TimeSelect extends Component {
 
         //Adding a brush to the chart
         let brusher = d3.brushX()
-            .extent([[this.margin_left * 2, 0], [this.dimensions.width, this.dimensions.height - this.margin_bottom]])
+            .extent([[this.margin_left * 2, 0], [this.dimensions.width - this.margin_left, this.dimensions.height - this.margin_bottom - 1]])
             .on('brush', (event) => {
                 let label1 = d3.select('#ts-label1');
                 let label2 = d3.select('#ts-label2');
@@ -237,7 +225,6 @@ class TimeSelect extends Component {
                     let date1Index = this.dateIndexedData.findIndex((d) => d.date.getTime() === date1.getTime());
                     let date2Index = this.dateIndexedData.findIndex((d) => d.date.getTime() === date2.getTime());
 
-
                     for (let i = date1Index; i <= date2Index; i++) {
                         aids = aids.concat(this.dateIndexedData[i].aids);
                     }
@@ -252,6 +239,7 @@ class TimeSelect extends Component {
                 this.page.setSelection(aids);
             });
         brush.call(brusher);
+        brush.on('wheel', () => brush.call(brusher.move, null));
     }
 }
 export { TimeSelect };
