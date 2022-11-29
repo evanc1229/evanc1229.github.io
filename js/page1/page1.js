@@ -23,8 +23,8 @@ class Page1 extends Page {
         height: 100,
       },
       map: {
-        width: 1600,
-        height: 800,
+        width: 700,
+        height: 700,
       },
       tooltip: {
         width: 600,
