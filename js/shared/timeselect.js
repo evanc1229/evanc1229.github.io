@@ -54,7 +54,7 @@ class TimeSelect extends Component {
         this.dateIndexedData = this.dateIndexedData.sort((a, b) => a.date - b.date);
     }
 
-    update() {}
+    update() { }
 
 
     /**
@@ -72,8 +72,9 @@ class TimeSelect extends Component {
             .domain(d3.extent(this.dateIndexedData, d => d.date))
             .range([this.margin_left * 2, this.dimensions.width - this.margin_left]);
 
-        let yScale = d3.scaleLinear()
-            .domain([0, Math.sqrt(d3.max(this.dateIndexedData, d => d.count))]) //Square root scale to make the graph more readable
+        //Using sysmlog scale to make the bars more visible and because zero is a part of the dataset 
+        let yScale = d3.scaleSymlog()
+            .domain([0, d3.max(this.dateIndexedData, d => d.count)]) //Square root scale to make the graph more readable
             .range([this.dimensions.height - this.margin_bottom, 0]);
 
         let xBarScale = d3.scaleBand()
@@ -82,30 +83,44 @@ class TimeSelect extends Component {
             .padding(0.1);
 
         //Adding Axis
-        let xAxis = d3.axisBottom(xScale)
+        let xAxisLarge = d3.axisBottom(xScale)
             .ticks(13)
             .tickFormat(d3.timeFormat("%Y"));
 
-        let zoom = function(svg) {
+        let xAxisMedium = d3.axisBottom(xScale)
+            .ticks(156)
+            .tickFormat(d3.timeFormat("%m/%Y"));
+
+        let xAxisSmall = d3.axisBottom(xScale)
+            .ticks(1200)
+            .tickFormat(d3.timeFormat("%d/%m"));
+
+        let zoom = function (svg) {
             let extent = [
                 [0, 0],
                 [dimensions.width, dimensions.height]
             ];
-        
+
             svg.call(d3.zoom()
-                .scaleExtent([1, 12])
+                .scaleExtent([1, 60])
                 .translateExtent(extent)
                 .extent(extent)
                 .on("zoom", zoomed));
 
             function zoomed(event) {
-                //Updating xScale
                 xScale.range([0, dimensions.width].map(d => event.transform.applyX(d)));
-
-                //Updating x axis
-                svg.selectAll("#ts-chart rect").attr("x", d => xScale(d.date)).attr("width", xBarScale.bandwidth());
-
-                svg.selectAll("#ts-xaxis").call(xAxis);
+                if (event.transform.k < 10) {
+                    svg.selectAll("#ts-chart rect").attr("x", d => xScale(d.date)).attr("width", xBarScale.bandwidth());
+                    svg.selectAll("#ts-xaxis").call(xAxisLarge);
+                }
+                else if (event.transform.k >= 10 && event.transform.k <= 40) {
+                    svg.selectAll("#ts-chart rect").attr("x", d => xScale(d.date)).attr("width", 1);
+                    svg.selectAll("#ts-xaxis").call(xAxisMedium);
+                }
+                else if (event.transform.k > 40) {
+                    svg.selectAll("#ts-chart rect").attr("x", d => xScale(d.date)).attr("width", 8);
+                    svg.selectAll("#ts-xaxis").call(xAxisSmall);
+                }
             }
         }
 
@@ -113,15 +128,20 @@ class TimeSelect extends Component {
         let svg = div
             .append('svg')
             .attr('width', this.dimensions.width)
+            .attr('viewBox', [this.margin_left, 0, this.dimensions.width, this.dimensions.height])
             .attr('height', this.dimensions.height)
-            .attr('id', 'timeselect');
-            // .call(zoom)
-            // .on('dblclick.zoom', null)
-            // .on('dragstart.zoom', null);
+            .attr('id', 'timeselect')
+            .call(zoom)
+            .on("mousedown.zoom", null)
+            .on("touchstart.zoom", null)
+            .on("touchmove.zoom", null)
+            .on("touchend.zoom", null);
 
         //Creating groups to hold sub components
         let chart = svg
-            .append('svg')
+            .append('g')
+            .attr('width', this.dimensions.width)
+            .attr('height', this.dimensions.height)
             .attr('id', 'ts-chart');
 
         let selectors = svg
@@ -163,7 +183,7 @@ class TimeSelect extends Component {
             .append('g')
             .attr('id', 'ts-xaxis')
             .attr('transform', `translate(0, ${this.dimensions.height - this.margin_bottom})`)
-            .call(xAxis)
+            .call(xAxisLarge)
             .call(g => g.select(".domain").remove());
 
         //Adding a rect to the svg to add a border
@@ -172,7 +192,7 @@ class TimeSelect extends Component {
             .attr('x', this.margin_left)
             .attr('y', 0)
             .attr('rx', 5)
-            .attr('width', this.dimensions.width - this.margin_left)
+            .attr('width', this.dimensions.width)
             .attr('height', this.dimensions.height - this.margin_bottom)
             .attr('fill', 'none')
             .attr('stroke-width', 1)
@@ -192,7 +212,7 @@ class TimeSelect extends Component {
 
         //Adding a brush to the chart
         let brusher = d3.brushX()
-            .extent([[this.margin_left * 2, 0], [this.dimensions.width - this.margin_left, this.dimensions.height - this.margin_bottom]])
+            .extent([[this.margin_left, 0], [this.dimensions.width + this.margin_left, this.dimensions.height - this.margin_bottom]])
             .on('brush', (event) => {
                 let label1 = d3.select('#ts-label1');
                 let label2 = d3.select('#ts-label2');
