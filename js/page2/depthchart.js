@@ -18,6 +18,33 @@ class DepthChart extends Component {
         this.dimensions = {};
         this.data = data;
         this.verbose = verbose
+
+        // Data processing
+        let parseFeetFromString = x => parseFloat(x.slice(0, x.length - 1).replace(',', '') / (x.endsWith('"') ? 12 : 1));
+        this.dateIndexedData = data.forEach((d) => d.depth = parseFeetFromString(d.depth));
+
+        this.dateIndexedData = Array.from(d3.rollup(this.data, v => {
+            let total = 0;
+            let length = v.length;
+
+            if (length == 0) return 0;
+
+            v.forEach((d) => {
+                total += d.depth;
+            });
+
+            return total / length;
+        }, d => d.date));
+
+        //converting back to array of objects
+        this.dateIndexedData = this.dateIndexedData.map((d) => {
+            return {
+                date: d[0],
+                depth: d[1]
+            };
+        });
+
+        this.dateIndexedData.sort((a, b) => a.date - b.date);
     }
     async render(div) {
         super.render(div)
@@ -25,30 +52,20 @@ class DepthChart extends Component {
     }
 
     drawChart() {
-        let data = this.data;
+        let dateFormater = d3.timeFormat("%Y");
+        console.log(this.dateIndexedData);
         let svg = this.div
             .append('svg')
             .attr('width', this.dimensions.width + 50)
             .attr('height', this.dimensions.height + 50)
             .append("g");
 
-
-        //let parseDate = d3.timeParse("%-m/%-d/%-Y");
-        let parseFeetFromString = x => parseFloat(x.slice(0, x.length - 1).replace(',', '') / (x.endsWith('"') ? 12 : 1));
-
-        let dateFormater = d3.timeFormat("%Y");
-
-
-        data.forEach((d) => d.depth = parseFeetFromString(d.depth));
-
-        data.sort((a, b) => a.date - b.date);
-
         let x = d3.scaleTime()
-            .domain(d3.extent(data.map((d) => d.date)))
+            .domain(d3.extent(this.dateIndexedData.map((d) => d.date)))
             .range([50, this.dimensions.width]);
 
         let y = d3.scaleLinear()
-            .domain(d3.extent(data,(d) => d.depth))
+            .domain(d3.extent(this.dateIndexedData, (d) => d.depth))
             .range([this.dimensions.height, 50]);
 
         let xAxis = d3.axisBottom()
@@ -61,7 +78,6 @@ class DepthChart extends Component {
         let line = d3.line()
             .x((d) => x(d.date))
             .y((d) => y(d.depth));
-        console.log(data);
 
         svg.append("g")
             .attr("class", "x axis")
@@ -79,22 +95,9 @@ class DepthChart extends Component {
             .text("Depth (inches)");
 
         svg.append("path")
-            .datum(data)
+            .datum(this.dateIndexedData)
             .attr("class", "line")
-            .attr("d", line)
-            .on("mouseover", function (e, d) {
-                tool.transition()
-                    .duration(200)
-                    .style("opacity", .9);
-                tool.html("Date: " + d.date + "<br/>" + "Depth: " + d.depth + " ft")
-                    .style("left", d3.select(this).attr("cx") + "px")
-                    .style("top", d3.select(this).attr("cy") + "px");
-            })
-            .on("mouseout", function (d) {
-                tool.transition()
-                    .duration(500)
-                    .style("opacity", 0);
-            });
+            .attr("d", line);
 
 
         let tool = d3.select("body").append("div")
