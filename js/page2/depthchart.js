@@ -107,7 +107,7 @@ class DepthChart extends Component {
         
         chart
             .append("text")
-            .attr("transform", `translate(${dimensions.width / 2}, ${margin.top / 2})`)
+            .attr("transform", `translate(${dimensions.width / 2}, ${margin.top})`)
             .style("text-anchor", "middle")
             .style("font-size", "16px")
             .text("Average Depth of Avalanches by Year");
