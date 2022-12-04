@@ -28,7 +28,76 @@ export function range(x, y) {
   if (x > y) {
     return [];
   }
-  else return [x, ...range(x + 1, y)];
+/** This function wraps text in a d3 selection
+ *  Usage: `<text_selection>.call(wrapText, <parent_selection>);
+ * @param {d3.Selection} textSelection
+ * @param {d3.Selection} parentSelection
+ */
+export function wrapText(textSelection, parentSelection) {
+  // Compute the width of the text element
+  let textWidth = textSelection.node().getComputedTextLength();
+
+  // Compute the width of the parent element
+  let parentWidth = parentSelection.node().getBoundingClientRect().width;
+
+  // Select the text element and append a tspan element for each line of text
+  textSelection
+    .selectAll("tspan")
+    .data(textSelection.text().trim().split("\n"))
+    .enter()
+    .append("tspan")
+    // .attr("x", parseFloat(parentSelection.attr("x")) + parseFloat(parentSelection.attr('width') / 2))
+    .attr("x", parentSelection.attr("x"))
+    // .attr("y", parentSelection.attr("y"))
+    .attr("dy", "1.2em")
+    .text((d) => d);
+
+  // If the text is wider than the parent element, set the text to wrap
+  if (textWidth > parentWidth) {
+    textSelection.call(wrap, parentWidth);
+  }
+}
+/**
+ *
+ * @param {d3.Selection} text
+ * @param {number} width
+ */
+export function wrap(text, width) {
+  text.each(function () {
+    let text = d3.select(this);
+    text.selectAll("tspan").remove();
+
+    let words = text.text().split(/\s+/).reverse();
+    let word;
+    let line = [];
+    let lineNumber = 0;
+    let lineHeight = 1.2;
+    let x = text.attr("x");
+    let y = text.attr("y");
+    let dy = 0;
+    let tspan = text
+      .text(null)
+      .append("tspan")
+      .attr("x", x)
+      .attr("y", y)
+      .attr("dy", dy + "em");
+
+    while ((word = words.pop())) {
+      line.push(word);
+      tspan.text(line.join(" "));
+      if (tspan.node().getComputedTextLength() > width) {
+        line.pop();
+        tspan.text(line.join(" "));
+        line = [word];
+        tspan = text
+          .append("tspan")
+          .attr("x", x)
+          .attr("y", y)
+          .attr("dy", ++lineNumber * lineHeight + dy + "em")
+          .text(word);
+      }
+    }
+  });
 }
 
 /**

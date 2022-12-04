@@ -17,13 +17,12 @@ export class Page {
     this.components = [];
   }
 
-
   /** Undoes any selection or transformation done
    *  Updates this component
    */
   resetSelection() {
     this.aidSelection = new Set(utils.range(0, this.data.length));
-    this.data = this.baseData
+    this.data = this.baseData;
     this.components.forEach((c) => {
       c.setData(this.data);
     });
@@ -84,11 +83,10 @@ export class Component {
     this.baseData = data;
     this.data = this.baseData;
   }
-  
+
   render(div) {
     this.div = div;
     this.dimensions = utils.getDimensions(div);
-
   }
 
   /** Log `msg` to console iff `this.verbose` was set to true
@@ -110,9 +108,15 @@ export class Component {
   }
 
   /** Placeholder for function to handle focusing on a specific ID
-   * @param {number} aid 
+   * @param {number} aid
    */
-  focus(aid) {
+  focus(aid) {}
+
+  /**
+   * @returns {number}
+   */
+  getFocus() {
+    return this.page.aidFocus;
   }
 
   /** Placeholder for updating component when data selection has changed

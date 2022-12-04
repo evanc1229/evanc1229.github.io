@@ -53,12 +53,14 @@ class Page1 extends Page {
     this.aidSelection = this.data.map((d) => d.aid);
     this.aidFocus = null;
 
+    this.timeselect = this.tooltip = this.map = new Component(this, this.data);
+
     // initialize components
     this.timeselect = new TimeSelect(this, this.data, false);
-    this.tooltip = new ToolTip(this, this.data, false);
+    // this.tooltip = new ToolTip(this, this.data, false);
     this.map = new MainMap(this, this.data, false);
 
-    this.components = [this.timeselect, this.tooltip, this.map];
+    this.components = [this.timeselect, this.map];
   }
 
   async render() {
@@ -85,20 +87,20 @@ class Page1 extends Page {
       .classed("mb-5", true);
     // .style("position", "absolute");
 
-    let ttDiv = div
-      .append("div")
-      .attr("id", "tooltip")
-      .style("width", `${this.dimensions.tooltip.width}px`)
-      .style("height", `${this.dimensions.tooltip.height}px`)
-      .style("left", `${this.positions.tooltip.x}px`)
-      .style("top", `${this.positions.tooltip.y}px`);
+    // let ttDiv = div
+    //   .append("div")
+    //   .attr("id", "tooltip")
+    //   .style("width", `${this.dimensions.tooltip.width}px`)
+    //   .style("height", `${this.dimensions.tooltip.height}px`)
+    //   .style("left", `${this.positions.tooltip.x}px`)
+    //   .style("top", `${this.positions.tooltip.y}px`);
     // .style("position", "absolute");
 
     this.map.render(mapDiv);
     this.timeselect.render(tsDiv);
-    this.tooltip.render(ttDiv);
+    // this.tooltip.render(ttDiv);
 
-    this.elementIds = ["timeselect", "map-container", "tooltip"];
+    this.elementIds = ["timeselect", "map-container"];
   }
 
   hide() {
