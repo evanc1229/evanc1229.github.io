@@ -154,16 +154,16 @@ export function wrapText(textSelection, parentSelection) {
   let parentWidth = parentSelection.node().getBoundingClientRect().width;
 
   // Select the text element and append a tspan element for each line of text
-  textSelection
-    .selectAll("tspan")
-    .data(textSelection.text().trim().split("\n"))
-    .enter()
-    .append("tspan")
-    // .attr("x", parseFloat(parentSelection.attr("x")) + parseFloat(parentSelection.attr('width') / 2))
-    .attr("x", parentSelection.attr("x"))
-    // .attr("y", parentSelection.attr("y"))
-    .attr("dy", "1.2em")
-    .text((d) => d);
+  // textSelection
+  //   .selectAll("tspan")
+  //   .data(textSelection.text().trim().split("\n"))
+  //   .enter()
+  //   .append("tspan")
+  //   // .attr("x", parseFloat(parentSelection.attr("x")) + parseFloat(parentSelection.attr('width') / 2))
+  //   .attr("x", parentSelection.attr("x"))
+  //   // .attr("y", parentSelection.attr("y"))
+  //   .attr("dy", "1.2em")
+  //   .text(d=>d);
 
   // If the text is wider than the parent element, set the text to wrap
   if (textWidth > parentWidth) {
@@ -180,7 +180,10 @@ export function wrap(text, width) {
     let text = d3.select(this);
     text.selectAll("tspan").remove();
 
-    let words = text.text().split(/\s+/).reverse();
+    let words = text
+      .text()
+      .split(/[^\S\n]+/)
+      .reverse();
     let word;
     let line = [];
     let lineNumber = 0;
@@ -245,14 +248,14 @@ export function preprocessData(data_raw) {
       aspect: d["Aspect"],
       elevation: d["Elevation"],
       coordinates: coordinates,
-      victim_status: [
-        d["Caught"],
-        d["Carried"],
-        d["Buried - Partly"],
-        d["Buried - Fully"],
-        d["Injured"],
-        d["Killed"],
-      ],
+      victim_status: {
+        caught: d["Caught"],
+        carried: d["Carried"],
+        buried_part: d["Buried - Partly"],
+        buried_full: d["Buried - Fully"],
+        injured: d["Injured"],
+        killed: d["Killed"],
+      },
       summary_accident: d["Accident and Rescue Summary"],
       summary_terrain: d["Terrain Summary"],
       summary_weather: d["Weather Conditions and History"],

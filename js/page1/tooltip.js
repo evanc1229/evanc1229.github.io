@@ -9,7 +9,14 @@ import("leaflet").catch((e) => {});
 if (L === undefined) L = leaflet;
 
 class ToolTipConfig {
-  constructor(width=300, height=300, offsetX=0, offsetY=0, padding=10, opacity=0.8) {
+  constructor(
+    width = 300,
+    height = 300,
+    offsetX = 0,
+    offsetY = 0,
+    padding = 10,
+    opacity = 0.8
+  ) {
     this.width = width;
     this.height = height;
     this.offsetX = offsetX;
@@ -24,10 +31,10 @@ class ToolTip extends Component {
    * @param {Component|Page} parent
    * @param {ToolTipConfig} config
    */
-  constructor(parent, config=new ToolTipConfig()) {
+  constructor(parent, config = new ToolTipConfig()) {
     super(parent, parent.data, parent.verbose);
     this.parent = parent;
-    this.config = config
+    this.config = config;
 
     this.loc = {
       x: parent.dimensions.left,
@@ -100,7 +107,11 @@ class ToolTip extends Component {
     this.tooltipGroup.style("display", "block");
     let tooltipX = this.loc.x + this.config.offsetX;
     let tooltipY = this.loc.y + this.config.offsetY;
-    let tooltipTextString = `Avalanche ${d.aid} occured on ${d.date} in ${d.region} with the victim being ${d.victim_status}`;
+
+    let victim_str = [...Object.keys(d.victim_status)].filter(e=>d.victim_status[e].length>0).map(e=>`${e}:${d.victim_status[e]}`).join('|')
+    let tooltipTextString =
+      `Avalanche ${d.aid} occured on ${d.date} in ${d.region} ` +
+      (victim_str.length ? `with the victim being ${victim_str}`:"\nThe victim was unharmed");
 
     // update tooltip rect
     (async () => {
@@ -671,4 +682,3 @@ class ToolTip extends Component {
   }
 }
 export { ToolTip };
-
