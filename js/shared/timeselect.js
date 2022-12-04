@@ -65,7 +65,7 @@ class TimeSelect extends Component {
         //Creating scales
         let xScale = d3.scaleTime()
             .domain(d3.extent(this.dateIndexedData, d => d.date))
-            .range([this.margin_left*2, this.dimensions.width - this.margin_left]);
+            .range([this.margin_left * 2, this.dimensions.width - this.margin_left]);
 
         //Using sysmlog scale to make the bars more visible and because zero is a part of the dataset 
         let yScale = d3.scaleSymlog()
@@ -74,7 +74,7 @@ class TimeSelect extends Component {
 
         let xBarScale = d3.scaleBand()
             .domain(this.dateIndexedData.map(d => d.date))
-            .range([this.margin_left*2, this.dimensions.width - this.margin_left])
+            .range([this.margin_left * 2, this.dimensions.width - this.margin_left])
             .padding(0.1);
 
         //Creating axes
@@ -96,7 +96,7 @@ class TimeSelect extends Component {
         */
         let zoom = function (svg) {
             let extent = [
-                [0,0],
+                [0, 0],
                 [dimensions.width, dimensions.height]
             ];
 
@@ -107,7 +107,7 @@ class TimeSelect extends Component {
                 .on("zoom", zoomed));
 
             function zoomed(event) {
-                xScale.range([margin_left*2, dimensions.width - margin_left].map(d => event.transform.applyX(d)));
+                xScale.range([margin_left * 2, dimensions.width - margin_left].map(d => event.transform.applyX(d)));
                 if (event.transform.k < 10) {
                     svg.selectAll(".ts-bar").attr("x", d => xScale(d.date)).attr("width", xBarScale.bandwidth());
                     svg.selectAll("#ts-xaxis").call(xAxisLarge);
@@ -127,7 +127,6 @@ class TimeSelect extends Component {
         let svg = div
             .append('svg')
             .attr('width', this.dimensions.width)
-            .attr('viewBox', [this.margin_left, 0, this.dimensions.width, this.dimensions.height])
             .attr('height', this.dimensions.height)
             .attr('id', 'timeselect')
             .call(zoom)
@@ -139,9 +138,9 @@ class TimeSelect extends Component {
         //Creating groups to hold sub components
         let chart = svg
             .append('g')
-            .attr('width', this.dimensions.width)
             .attr('height', this.dimensions.height)
-            .attr('id', 'ts-chart');
+            .attr('id', 'ts-chart')
+            .attr("transform", `translate(${location.x}, ${location.y})`);
 
         let brush = svg
             .append('g')
@@ -173,18 +172,24 @@ class TimeSelect extends Component {
 
         chart
             .append('g')
+            .append('svg')
+            .attr('width', this.dimensions.width)
+            .attr('height', this.dimensions.height)
             .attr('id', 'ts-xaxis')
             .attr('transform', `translate(0, ${this.dimensions.height - this.margin_bottom})`)
             .call(xAxisLarge);
 
         //Plotting the bars
         chart
+            .append('svg')
+            .attr('width', this.dimensions.width)
+            .attr('height', this.dimensions.height)
             .selectAll('rect')
             .data(this.dateIndexedData)
             .join('rect')
             .classed('ts-bar', true)
             .attr('x', d => xBarScale(d.date))
-            .attr('y', d => yScale(d.count)-1)
+            .attr('y', d => yScale(d.count) - 1)
             .attr('width', xBarScale.bandwidth())
             .attr('height', d => this.dimensions.height - this.margin_bottom - yScale(d.count))
             .attr('fill', 'lightblue')

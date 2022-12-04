@@ -20,7 +20,7 @@ class Page2 extends Page {
 
     this.dimensions = {
       depthchart: {
-        width: 500,
+        width: 800,
         height: 500,
       },
       elevationchart: {

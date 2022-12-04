@@ -17,14 +17,9 @@ class Histogram extends Component {
    */
   constructor(page, data, verbose=false){
     super(page, data, verbose);
-    this.page = page
-    this.dimensions = {};
-    this.data = data;
-    this.verbose = verbose
   }
   async render(div) {
     super.render(div)
-
   }
 }
 export {Histogram };
