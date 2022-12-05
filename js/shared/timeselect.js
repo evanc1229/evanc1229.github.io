@@ -58,7 +58,6 @@ class TimeSelect extends Component {
      */
     async render(div) {
         super.render(div);
-
         let dimensions = this.dimensions;
         let margin_left = this.margin_left;
 
@@ -127,9 +126,9 @@ class TimeSelect extends Component {
         let svg = div
             .append('svg')
             .attr('width', this.dimensions.width)
-            .attr('viewBox', [this.margin_left, 0, this.dimensions.width, this.dimensions.height])
             .attr('height', this.dimensions.height)
-            .attr('id', 'timeselect')
+            .attr('viewBox', [0, 0, this.dimensions.width, this.dimensions.height])
+            .attr('id', 'ts-svg')
             .call(zoom)
             .on("mousedown.zoom", null) // Removeing some zoom functionality to make it compatible with brushing
             .on("touchstart.zoom", null)
@@ -138,18 +137,24 @@ class TimeSelect extends Component {
 
         //Creating groups to hold sub components
         let chart = svg
-            .append('g')
-            .attr('width', this.dimensions.width)
-            .attr('height', this.dimensions.height)
+            .append('svg')
+            .attr('width', this.dimensions.width - this.margin_left)
+            .attr('x', this.margin_left) 
             .attr('id', 'ts-chart');
 
         let brush = svg
             .append('g')
             .attr('id', 'ts-brush');
 
-        let labels = svg
+        let labels = brush
             .append('g')
             .attr('id', 'ts-labels');
+        
+        let axis = svg
+            .append('svg')
+            .attr('width', this.dimensions.width - this.margin_left)
+            .attr('x', this.margin_left)
+            .attr('id', 'ts-xaxis');
 
         labels
             .append('text')
@@ -171,9 +176,7 @@ class TimeSelect extends Component {
             .attr('fill', 'black')
             .text('End Date');
 
-        chart
-            .append('g')
-            .attr('id', 'ts-xaxis')
+        axis
             .attr('transform', `translate(0, ${this.dimensions.height - this.margin_bottom})`)
             .call(xAxisLarge);
 

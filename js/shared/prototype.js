@@ -8,22 +8,25 @@ export class Page {
    *
    * @param {Array<utils.AvalancheData>} data
    */
-  constructor(data) {
+  constructor(data, name="page") {
+    this.name = name
     this.baseData = data;
     this.data = this.baseData.slice();
 
-    this.aidSelection = new Set(utils.range(0, this.data.length));
+    this.aidSelection = utils.range(0, this.data.length);
     this.aidFocus = null;
-    this.components = [];
-  }
 
+    this.components = [];
+    this.divs = [];
+    this.hidden = true;
+  }
 
   /** Undoes any selection or transformation done
    *  Updates this component
    */
   resetSelection() {
     this.aidSelection = new Set(utils.range(0, this.data.length));
-    this.data = this.baseData
+    this.data = this.baseData;
     this.components.forEach((c) => {
       c.setData(this.data);
     });
@@ -66,6 +69,48 @@ export class Page {
   getFocus() {
     return this.aidFocus;
   }
+
+  show() {
+    if (this.hidden) {
+      this.hidden = false;
+      this.components.forEach((c) => c.show());
+    }
+  }
+
+  hide() {
+    if (!this.hidden) {
+      this.hidden = true;
+      this.components.forEach((c) => c.hide());
+    }
+  }
+
+  render() {
+
+    let div = d3.select(".content").append("div").attr("id", this.name);
+
+    let y = this.padding;
+    let x = this.padding;
+    R.forEachObjIndexed((cDims, cName) => {
+      this.divs.push(
+        div
+          .append("div")
+          .attr("id", `${cName}-container`)
+          .style("width", `${cDims.width}px`)
+          .style("height", `${cDims.height}px`)
+          .style("left", `${x}px`)
+          .style("top", `${y}px`)
+          .classed("my-2", true)
+      );
+      y += cDims.height + this.padding;
+    }, this.config);
+
+    R.zip(this.components, this.divs).forEach(([c, d]) => {
+      c.render(d);
+
+      if (this.hidden)
+        c.hide();
+    });
+  }
 }
 
 /**
@@ -84,11 +129,10 @@ export class Component {
     this.baseData = data;
     this.data = this.baseData;
   }
-  
+
   render(div) {
     this.div = div;
     this.dimensions = utils.getDimensions(div);
-
   }
 
   /** Log `msg` to console iff `this.verbose` was set to true
@@ -110,14 +154,32 @@ export class Component {
   }
 
   /** Placeholder for function to handle focusing on a specific ID
-   * @param {number} aid 
+   * @param {number} aid
    */
-  focus(aid) {
+  focus(aid) {}
+
+  /**
+   * @returns {number}
+   */
+  getFocus() {
+    return this.page.aidFocus;
   }
 
   /** Placeholder for updating component when data selection has changed
    */
   update() {}
+
+  /** Default way for a component to hide itself
+   */
+  hide() {
+    this.div?.style("display", "none");
+  }
+
+  /** Default way for a component to show itself
+   */
+  show() {
+    this.div?.style("display", "block");
+  }
 
   /** Transforms the selection of data by applying `func` to each data point
    *  Calls `update` on component
