@@ -43,7 +43,7 @@ class Page2 extends Page {
         y: 0,
       },
       elevationchart: {
-        x: this.dimensions.depthchart.width + this.padding,
+        x: 0,
         y: 0,
       },
       histogram: {
@@ -60,8 +60,8 @@ class Page2 extends Page {
     this.aidFocus = null;
 
     // initialize components
-    this.depthchart = new DepthChart(this, this.data, false);
-    this.elevationchart = new ElevationChart(this, this.data, false);
+    //this.depthchart = new DepthChart(this, this.data, false);
+    this.elevationchart = new ElevationChart(this, this.data, true);
     this.histogram = new Histogram(this, this.data, false);
     this.roseplot = new RosePlot(this, this.data, false);
 
@@ -71,13 +71,13 @@ class Page2 extends Page {
   async render() {
     let div = d3.select(".content");
 
-    let dcDiv = div
-      .append("div")
-      .attr("id", "depthchart")
-      .style("width", `${this.dimensions.depthchart.width}px`)
-      .style("height", `${this.dimensions.depthchart.height}px`)
-      .style("left", `${this.positions.depthchart.x}px`)
-      .style("top", `${this.positions.depthchart.y}px`)
+    // let dcDiv = div
+    //   .append("div")
+    //   .attr("id", "depthchart")
+    //   .style("width", `${this.dimensions.depthchart.width}px`)
+    //   .style("height", `${this.dimensions.depthchart.height}px`)
+    //   .style("left", `${this.positions.depthchart.x}px`)
+    //   .style("top", `${this.positions.depthchart.y}px`)
 
     // .style("position", "absolute");
 
@@ -108,7 +108,7 @@ class Page2 extends Page {
       .style("top", `${this.positions.roseplot.y}px`);
     // .style("position", "absolute");
 
-    this.depthchart.render(dcDiv);
+    //this.depthchart.render(dcDiv);
     this.elevationchart.render(ecDiv);
     this.histogram.render(hDiv);
     this.roseplot.render(rpDiv);
