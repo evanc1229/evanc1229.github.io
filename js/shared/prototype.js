@@ -8,13 +8,17 @@ export class Page {
    *
    * @param {Array<utils.AvalancheData>} data
    */
-  constructor(data) {
+  constructor(data, name="page") {
+    this.name = name
     this.baseData = data;
     this.data = this.baseData.slice();
 
-    this.aidSelection = new Set(utils.range(0, this.data.length));
+    this.aidSelection = utils.range(0, this.data.length);
     this.aidFocus = null;
+
     this.components = [];
+    this.divs = [];
+    this.hidden = true;
   }
 
   /** Undoes any selection or transformation done
@@ -67,15 +71,45 @@ export class Page {
   }
 
   show() {
-    this.components.forEach((c) => c.show());
+    if (this.hidden) {
+      this.hidden = false;
+      this.components.forEach((c) => c.show());
+    }
   }
 
   hide() {
-    this.components.forEach((c) => c.hide());
+    if (!this.hidden) {
+      this.hidden = true;
+      this.components.forEach((c) => c.hide());
+    }
   }
 
   render() {
-    this.components.forEach((c) => c.render());
+
+    let div = d3.select(".content").append("div").attr("id", this.name);
+
+    let y = this.padding;
+    let x = this.padding;
+    R.forEachObjIndexed((cDims, cName) => {
+      this.divs.push(
+        div
+          .append("div")
+          .attr("id", `${cName}-container`)
+          .style("width", `${cDims.width}px`)
+          .style("height", `${cDims.height}px`)
+          .style("left", `${x}px`)
+          .style("top", `${y}px`)
+          .classed("my-2", true)
+      );
+      y += cDims.height + this.padding;
+    }, this.config);
+
+    R.zip(this.components, this.divs).forEach(([c, d]) => {
+      c.render(d);
+
+      if (this.hidden)
+        c.hide();
+    });
   }
 }
 
