@@ -24,9 +24,12 @@ export class Nav {
   }
 
   swapPage(pElement) {
-    if (!this.state.activePages.has(pElement.target.id) || this.state.activePages.size != 1) {
+    if (
+      !this.state.activePages.has(pElement.target.id) ||
+      this.state.activePages.size != 1
+    ) {
       this.state.activePages.forEach((pName) => {
-        this.hidePage(pName)
+        this.hidePage(pName);
       });
 
       this.activatePage(pElement.target.id);

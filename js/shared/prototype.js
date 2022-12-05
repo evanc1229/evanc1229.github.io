@@ -13,11 +13,12 @@ export class Page {
     this.baseData = data;
     this.data = this.baseData.slice();
 
-    this.aidSelection = utils.range(0, this.data.length);
+    this.aidSelection = [];
     this.aidFocus = null;
 
     this.components = [];
     this.divs = [];
+    this.div = null;
     this.hidden = true;
   }
 
@@ -71,21 +72,27 @@ export class Page {
   }
 
   show() {
+    console.log(this.name, "SHOW")
     if (this.hidden) {
       this.hidden = false;
+      this.div
+        ?.style("display", "block")
       this.components.forEach((c) => c.show());
     }
   }
 
   hide() {
+    console.log(this.name, "HIDE")
     if (!this.hidden) {
       this.hidden = true;
+      this.div
+        ?.style("display", "none")
       this.components.forEach((c) => c.hide());
     }
   }
 
   render() {
-    let div = d3
+    this.div = d3
       .select(".content")
       .append("div")
       .attr("id", this.name)
@@ -95,7 +102,7 @@ export class Page {
     let x = this.padding;
     R.forEachObjIndexed((cDims, cName) => {
       this.divs.push(
-        div
+        this.div
           .append("div")
           .attr("id", `${cName}-container`)
           .style("width", `${cDims.width}px`)
@@ -174,13 +181,21 @@ export class Component {
   /** Default way for a component to hide itself
    */
   hide() {
-    this.div?.style("display", "none");
+    this.div
+      ?.transition()
+      .duration(100)
+      .style("opacity", 0)
+      .style("display", "none");
   }
 
   /** Default way for a component to show itself
    */
   show() {
-    this.div?.style("display", "block");
+    this.div
+      ?.transition()
+      .duration(100)
+      .style("opacity", 1)
+      .style("display", "block");
   }
 
   /** Transforms the selection of data by applying `func` to each data point

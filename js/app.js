@@ -10,12 +10,12 @@ const data_raw = await utils.loadData();
 const data = utils.preprocessData(data_raw);
 
 const pages = {
-  p1: new Page1(data, 'p1'),
-  p2: new Page2(data, 'p2'),
-  p3: new Page3(data, 'p3'),
+  p1: new Page1(data, "p1"),
+  p2: new Page2(data, "p2"),
+  p3: new Page3(data, "p3"),
 };
 const nav = new Nav(pages);
-nav.activatePage('p1');
+nav.activatePage("p1");
 
 (async () => {
   R.forEachObjIndexed((page, name) => page.render(), pages);
@@ -32,7 +32,32 @@ window.globalState = globalState;
 
 console.log("DONE");
 
-d3.select('#navbar').append('button').text('debug').on('click', () => {
-  pages.p1.map.toggleShrink(100, 0)
-  nav.activatePage("p2")
-})
+var t = true;
+d3.select("#navbar")
+  .append("button")
+  .text("debug")
+  .on("click", () => {
+    pages.p1.map.toggleShrink(100, 0);
+    console.log("clicked:", t, pages.p1.hidden, pages.p2.hidden);
+    if (t) {
+      nav.activatePage("p2");
+      pages.p2.div
+        .style('left', `${1200}px`)
+        .transition()
+        .duration(500)
+        .style("left", `${pages.p1.map.dimensions.right + 10}px`)
+        .style("top",`${pages.p1.map.dimensions.top}px`);
+      t = false;
+    } else {
+      pages.p2.div
+        .transition()
+        .duration(500)
+        .style("left", `${pages.p2.padding}px`)
+        .style("top", `${pages.p2.padding}px`)
+        .delay(500)
+        .call(() => {
+          nav.hidePage("p2");
+        });
+      t = true;
+    }
+  });

@@ -18,6 +18,9 @@ class TimeSelect extends Component {
     constructor(page, data, verbose = false, flipped = false) {
         super(page, data, verbose)
 
+        this.aidSelection = this.data.map(d=>d.aid);
+        this.page.setSelection(this.aidSelection);
+
         this.margin_bottom = 18;
         this.margin_left = 15;
 
