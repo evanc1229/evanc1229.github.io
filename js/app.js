@@ -31,3 +31,7 @@ var globalState = {
 window.globalState = globalState;
 
 console.log("DONE");
+
+d3.select('#navbar').append('button').text('debug').on('click', () => {
+  pages.p1.map.toggleShrink(100, 0)
+})

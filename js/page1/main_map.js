@@ -31,6 +31,7 @@ class MainMap extends Component {
     this.state = {};
 
     this.tooltips = null;
+    this.shrunk = false;
 
     // d3.select(".content")
     //   .attr("id", "testbutton")
@@ -125,6 +126,25 @@ class MainMap extends Component {
       .classed("overlay", true);
 
     return overlay.raise();
+  }
+
+  toggleShrink(xDiff = 0, yDiff = 0) {
+    if (this.shrunk) {
+      this.mapDiv
+        .transition()
+        .duration(300)
+        .style("width", `${this.dimensions.width}px`)
+        .style("height", `${this.dimensions.height}px`);
+      this.shrunk = false;
+      
+    } else {
+      this.mapDiv
+        .transition()
+        .duration(300)
+        .style("width", `${this.dimensions.width - xDiff}px`)
+        .style("height", `${this.dimensions.height - yDiff}px`);
+      this.shrunk = true;
+    }
   }
 
   /** Render current component to screen
