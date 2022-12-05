@@ -104,5 +104,6 @@ class Page1 extends Page {
   hide() {
     this.elementIds.forEach((id) => document.getElementById(id).remove());
   }
+  
 }
 export { Page1 };
