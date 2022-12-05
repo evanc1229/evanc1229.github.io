@@ -2,6 +2,7 @@ import { Page1 } from "./page1/page1.js";
 import { Page2 } from "./page2/page2.js";
 import { Page3 } from "./page3/page3.js";
 import { Nav } from "./shared/nav.js";
+import helpButton from "./shared/help.js";
 import * as utils from "./shared/utils.js";
 
 // Initialize each of pages 1, 2, and 3 with dataset
@@ -27,6 +28,8 @@ var globalState = {
   nav: nav,
 };
 
+
+
 // store state globally for debugging
 window.globalState = globalState;
 
@@ -38,7 +41,7 @@ d3.select("#navbar")
   .text("debug")
   .on("click", () => {
     pages.p1.map.toggleShrink(100, 0);
-    console.log("clicked:", t, pages.p1.hidden, pages.p2.hidden);
+    // console.log("clicked:", t, pages.p1.hidden, pages.p2.hidden);
     if (t) {
       nav.activatePage("p2");
       pages.p2.div
