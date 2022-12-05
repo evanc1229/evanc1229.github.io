@@ -40,5 +40,6 @@ class Page1 extends Page {
   async render() {
     super.render();
   }
+  
 }
 export { Page1 };
