@@ -8,8 +8,8 @@ export class Page {
    *
    * @param {Array<utils.AvalancheData>} data
    */
-  constructor(data, name="page") {
-    this.name = name
+  constructor(data, name = "page") {
+    this.name = name;
     this.baseData = data;
     this.data = this.baseData.slice();
 
@@ -85,8 +85,11 @@ export class Page {
   }
 
   render() {
-
-    let div = d3.select(".content").append("div").attr("id", this.name);
+    let div = d3
+      .select(".content")
+      .append("div")
+      .attr("id", this.name)
+      .style("position", "absolute");
 
     let y = this.padding;
     let x = this.padding;
@@ -107,8 +110,7 @@ export class Page {
     R.zip(this.components, this.divs).forEach(([c, d]) => {
       c.render(d);
 
-      if (this.hidden)
-        c.hide();
+      if (this.hidden) c.hide();
     });
   }
 }

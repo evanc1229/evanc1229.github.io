@@ -15,7 +15,7 @@ const pages = {
   p3: new Page3(data, 'p3'),
 };
 const nav = new Nav(pages);
-pages.p1.show();
+nav.activatePage('p1');
 
 (async () => {
   R.forEachObjIndexed((page, name) => page.render(), pages);
@@ -34,4 +34,5 @@ console.log("DONE");
 
 d3.select('#navbar').append('button').text('debug').on('click', () => {
   pages.p1.map.toggleShrink(100, 0)
+  nav.activatePage("p2")
 })

@@ -1,25 +1,35 @@
 export class Nav {
   constructor(pages) {
     this.pages = pages;
-    this.activePage = "p1";
 
     this.state = {
-      activePage: "p1",
-      prevPage: null,
+      activePages: new Set(["p1"]),
     };
 
-    this.navItems = d3.selectAll("a.nav-link").on("click", this.swapPage.bind(this));
+    this.navItems = d3
+      .selectAll("a.nav-link")
+      .on("click", this.swapPage.bind(this));
   }
 
-  swapPage(p) {
-    if (this.state.activePage != p.target.id) {
-      this.state.prevPage = this.state.activePage;
-      this.pages[this.state.activePage].hide();
-      this.pages[p.target.id].show();
-      this.state.activePage = p.target.id;
+  activatePage(pName) {
+    this.pages[pName].show();
+    this.state.activePages.add(pName);
+    document.querySelector(`#${pName}`).classList.add("active");
+  }
 
-      document.querySelector(`#${this.state.prevPage}`).classList.remove("active");
-      p.target.classList.add("active");
+  hidePage(pName) {
+    this.pages[pName].hide();
+    this.state.activePages.delete(pName);
+    document.querySelector(`#${pName}`).classList.remove("active");
+  }
+
+  swapPage(pElement) {
+    if (!this.state.activePages.has(pElement.target.id) || this.state.activePages.size != 1) {
+      this.state.activePages.forEach((pName) => {
+        this.hidePage(pName)
+      });
+
+      this.activatePage(pElement.target.id);
     }
   }
 }

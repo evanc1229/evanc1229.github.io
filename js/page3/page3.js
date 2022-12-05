@@ -6,8 +6,8 @@ class Page3 extends Page {
    *
    * @param {Array<utils.AvalancheData>} data
    */
-  constructor(data) {
-    super(data);
+  constructor(data, name) {
+    super(data, name);
     console.log("Init Page 3");
     this.data = data;
   }
