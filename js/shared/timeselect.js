@@ -58,7 +58,6 @@ class TimeSelect extends Component {
      */
     async render(div) {
         super.render(div);
-
         let dimensions = this.dimensions;
         let margin_left = this.margin_left;
 
@@ -128,7 +127,8 @@ class TimeSelect extends Component {
             .append('svg')
             .attr('width', this.dimensions.width)
             .attr('height', this.dimensions.height)
-            .attr('id', 'timeselect')
+            .attr('viewBox', [0, 0, this.dimensions.width, this.dimensions.height])
+            .attr('id', 'ts-svg')
             .call(zoom)
             .on("mousedown.zoom", null) // Removeing some zoom functionality to make it compatible with brushing
             .on("touchstart.zoom", null)
@@ -146,9 +146,15 @@ class TimeSelect extends Component {
             .append('g')
             .attr('id', 'ts-brush');
 
-        let labels = svg
+        let labels = brush
             .append('g')
             .attr('id', 'ts-labels');
+        
+        let axis = svg
+            .append('svg')
+            .attr('width', this.dimensions.width - this.margin_left)
+            .attr('x', this.margin_left)
+            .attr('id', 'ts-xaxis');
 
         labels
             .append('text')
