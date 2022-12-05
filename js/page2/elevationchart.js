@@ -240,6 +240,53 @@ class ElevationChart extends Component {
       .style("text-anchor", "middle")
       .style("font-size", "16px")
       .text("Number of Avalanches by Depth per Day");
+    
+    //Legend
+    let legend = chart
+      .append("g")
+      .attr("transform", `translate(${dimensions.width - 100}, ${margin.top})`);
+    
+    legend
+      .append("rect")
+      .attr("x", 0)
+      .attr("y", 0)
+      .attr("width", 10)
+      .attr("height", 10)
+      .attr("fill", "blue");
+    
+    legend
+      .append("text")
+      .attr("x", 15)
+      .attr("y", 10)
+      .text(">9500ft");
+    
+    legend
+      .append("rect")
+      .attr("x", 0)
+      .attr("y", 20)
+      .attr("width", 10)
+      .attr("height", 10)
+      .attr("fill", "red");
+    
+    legend
+      .append("text")
+      .attr("x", 15)
+      .attr("y", 30)
+      .text("8000ft to 9500ft");
+    
+    legend
+      .append("rect")
+      .attr("x", 0)
+      .attr("y", 40)
+      .attr("width", 10)
+      .attr("height", 10)
+      .attr("fill", "yellow");
+    
+    legend
+      .append("text")
+      .attr("x", 15)
+      .attr("y", 50)
+      .text("<8000ft");
   }
 }
 export { ElevationChart };

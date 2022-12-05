@@ -63,7 +63,7 @@ class DepthChart extends Component {
             .range([10, dimensions.width - margin.right])
             .padding(0.1);
 
-        let yScale = d3.scaleSymlog()
+        let yScale = d3.scaleLinear()
             .domain([0, d3.max(this.dateIndexedData, d => d.depth)])
             .range([dimensions.height - margin.bottom, margin.top]);
 
@@ -79,8 +79,7 @@ class DepthChart extends Component {
             .ticks(1200)
             .tickFormat(d3.timeFormat("%d/%m"));
 
-        let yAxis = d3.axisLeft(yScale)
-            .tickFormat(d3.format(".1s"));
+        let yAxis = d3.axisLeft(yScale);
 
         /**
         * This function handles zooming in and out of the time selection component
