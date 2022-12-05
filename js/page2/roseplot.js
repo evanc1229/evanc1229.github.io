@@ -107,6 +107,14 @@ class RosePlot extends Component {
         .attr("height", 700)
         .attr("class", "radar");
 
+      svg.append("text")
+        .attr("x", 20)
+        .attr("y", 20 )
+        .attr("text-anchor", "left")
+        .style("font-size", "16px")
+        .style("text-decoration", "underline")
+        .text("# of Avalanches by Direction");
+
       let g = svg.append("g")
         .attr("transform", "translate(" + (330) + "," + (320) + ")");
 
