@@ -1,100 +1,178 @@
 // depthchart component in P2
 
 import * as utils from "../shared/utils.js";
-import { Page,Component } from "../shared/prototype.js";
+import { Page, Component } from "../shared/prototype.js";
 
-var leaflet = await import("https://cdn.skypack.dev/leaflet");
-import("leaflet").catch((e) => { });
 
-if (L === undefined) L = leaflet;
 
 class DepthChart extends Component {
-  /**
-   * 
-   * @param {Page} page
-   * @param {Array<utils.AvalancheData>} data 
-   * @param {bool} verbose 
-   */
-  constructor(page, data, verbose=false){
-    super(page, data, verbose);
-    this.page = page
-    this.dimensions = {};
-    this.data = data;
-    this.verbose = verbose
-  }
-  async render(div) {
-    super.render(div)
+    /**
+     * 
+     * @param {Page} page
+     * @param {Array<utils.AvalancheData>} data 
+     * @param {bool} verbose 
+     */
+    constructor(page, data, verbose = false) {
+        super(page, data, verbose);
+        this.log("Init DepthChart");
 
-    this.drawChart();
-  }
+        // Data processing
+        this.dateIndexedData = this.data;
 
-  drawChart()
-  {
-    let data = this.data;
-    let svg = this.div
-        .append('svg')
-        .attr('width', this.dimensions.width +50 )
-        .attr('height', this.dimensions.height +50)
-        .append("g");
-       
-    
-    let dateFormater = d3.timeFormat("%Y");
-    let x = d3.scaleTime().range([50, this.dimensions.width]);
-    let y = d3.scaleLinear().range([this.dimensions.height, 50]);
+        this.dateIndexedData = Array.from(d3.rollup(this.data, v => {
+            let total = 0;
+            let count = 0;
+            let length = v.length;
 
-    let xAxis = d3.axisBottom().scale(x).tickFormat(dateFormater);
-    let yAxis = d3.axisRight().scale(y);
+            if (length == 0) return [0, 0];
 
-    let line = d3.line().x(function(d) {return x(d.date);})
-                        .y(function(d){return(y(d.depth));});
-    
-    data.sort(function(a,b){return a.date - b.date;});
-    
-    x.domain(d3.extent([data[0].date, data[data.length-1].date]));
-    y.domain(d3.extent(data, function(d) {return d.depth;}));
+            v.forEach((d) => {
+                total += d.depth;
+                count += 1;
+            });
+            return [total / length, count];
+        }, d => d.date));
 
-    svg.append("g")
-        .attr("class", "x axis")
-        .attr("transform", "translate(0," + this.dimensions.height + ")")
-        .call(xAxis);
-    
-    svg.append("g")
-        .attr("class", "y axis")
-        .call(yAxis)
-        .append("text")
-        .attr("transform", "rotate(-90)")
-        .attr("y", 6)
-        .attr("dy", ".71em")
-        .style("text-anchor", "end")
-        .text("Depth (inches)");
-
-    svg.append("path")
-        .datum(data)
-        .attr("class", "line")
-        .attr("d", line)
-        .on("mouseover", function(e,d) {
-            tool.transition()
-                .duration(200)
-                .style("opacity", .9);
-            tool.html("Date: " + d.date + "<br/>" + "Depth: " + d.depth + " ft")
-                .style("left", d3.select(this).attr("cx") + "px")
-                .style("top", d3.select(this).attr("cy") + "px");
-        })
-        .on("mouseout", function(d) {
-            tool.transition()
-                .duration(500)
-                .style("opacity", 0);
+        //converting back to array of objects
+        this.dateIndexedData = this.dateIndexedData.map((d) => {
+            return {
+                date: d[0],
+                depth: d[1][0],
+                count: d[1][1]
+            };
         });
-        
 
-    let tool = d3.select("body").append("div")
-        .attr("class", "tooltip")
-        .style("opacity", 0)
-        .style("position", "absolute")
-        .style("background-color", "black")
-        .style("color", "white");
-        
-  }
+        this.dateIndexedData.sort((a, b) => a.date - b.date);
+    }
+    async render(div) {
+        super.render(div)
+        this.log("Render DepthChart");
+        let margin = { top: 20, right: 20, bottom: 30, left: 50 };
+        let dimensions = this.page.config.depthchart;
+
+        //Creating scales for bar chart
+        let xScale = d3.scaleTime()
+            .domain(d3.extent(this.dateIndexedData, d => d.date))
+            .range([10, dimensions.width - margin.right]);
+
+        let xBarScale = d3.scaleBand()
+            .domain(this.dateIndexedData.map(d => d.date))
+            .range([10, dimensions.width - margin.right])
+            .padding(0.1);
+
+        let yScale = d3.scaleLinear()
+            .domain([0, d3.max(this.dateIndexedData, d => d.depth)])
+            .range([dimensions.height - margin.bottom, margin.top]);
+
+        //Creating axes
+        let xAxisLarge = d3.axisBottom(xScale)
+            .tickFormat(d3.timeFormat("%Y"));
+
+        let xAxisMedium = d3.axisBottom(xScale)
+            .ticks(156)
+            .tickFormat(d3.timeFormat("%m/%Y"));
+
+        let xAxisSmall = d3.axisBottom(xScale)
+            .ticks(1200)
+            .tickFormat(d3.timeFormat("%d/%m"));
+
+        let yAxis = d3.axisLeft(yScale);
+
+        /**
+        * This function handles zooming in and out of the time selection component
+        * @param {selection} svg 
+        */
+        let zoom = function (svg) {
+            let extent = [
+                [0, 0],
+                [dimensions.width, dimensions.height]
+            ];
+
+            svg.call(d3.zoom()
+                .scaleExtent([1, 60])
+                .translateExtent(extent)
+                .extent(extent)
+                .on("zoom", zoomed));
+
+            function zoomed(event) {
+                xScale.range([10, dimensions.width - margin.right].map(d => event.transform.applyX(d)));
+                if (event.transform.k < 10) {
+                    svg.selectAll(".depth-bar").attr("x", d => xScale(d.date)).attr("width", xBarScale.bandwidth());
+                    svg.selectAll("#dc-xaxis").call(xAxisLarge);
+                }
+                else if (event.transform.k >= 10 && event.transform.k <= 40) {
+                    svg.selectAll(".depth-bar").attr("x", d => xScale(d.date)).attr("width", 1);
+                    svg.selectAll("#dc-xaxis").call(xAxisMedium);
+                }
+                else if (event.transform.k > 40) {
+                    svg.selectAll(".depth-bar").attr("x", d => xScale(d.date)).attr("width", 8);
+                    svg.selectAll("#dc-xaxis").call(xAxisSmall);
+                }
+            }
+        }
+
+        let svg = this.div
+            .append('svg')
+            .attr('width', dimensions.width + margin.left + margin.right)
+            .attr('height', dimensions.height + margin.top + margin.bottom)
+            .call(zoom);
+
+        let chart = svg
+            .append("g")
+            .attr('id', 'depthchart')
+            .attr("transform", 'translate(0, 0)');
+
+        chart
+            .append('svg')
+            .attr('width', dimensions.width)
+            .attr('x', margin.left)
+            .selectAll("rect")
+            .data(this.dateIndexedData)
+            .join("rect")
+            .attr("x", d => xScale(d.date))
+            .attr("y", d => yScale(d.depth))
+            .attr("width", xBarScale.bandwidth())
+            .attr("height", d => yScale(0) - yScale(d.depth))
+            .attr("fill", "steelblue")
+            .classed("depth-bar", true);
+
+        chart
+            .append("g")
+            .append('svg')
+            .attr('width', dimensions.width)
+            .attr('x', margin.left)
+            .attr("transform", `translate(0, ${dimensions.height - margin.bottom})`)
+            .attr("id", "dc-xaxis")
+            .call(xAxisLarge);
+
+        chart
+            .append("g")
+            .attr("transform", `translate(${margin.left}, 0)`)
+            .attr("id", "dc-yaxis")
+            .call(yAxis);
+
+
+        chart
+            .append("text")
+            .attr("transform", `translate(${dimensions.width / 2}, ${dimensions.height})`)
+            .style("text-anchor", "middle")
+            .text("Date");
+
+        chart
+            .append("text")
+            .attr("transform", `translate(${margin.left / 2}, ${dimensions.height / 2}) rotate(-90)`)
+            .style("text-anchor", "middle")
+            .text("Average Depth (ft)");
+
+        chart
+            .append("text")
+            .attr("transform", `translate(${dimensions.width / 2}, ${margin.top})`)
+            .style("text-anchor", "middle")
+            .style("font-size", "16px")
+            .text("Average Depth of Avalanches by Year");
+
+        this.log("Rendered DepthChart");
+    }
 
 }
-export {DepthChart };
+export { DepthChart };
