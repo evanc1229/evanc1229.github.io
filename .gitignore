@@ -1,5 +1,5 @@
 ### CUSTOM GITIGNORE ###
-*.csv
+# *.csv
 data/*.*json
 notebooks/*.ipynb
 
