@@ -19,12 +19,12 @@ class Page1 extends Page {
 
     this.config = {
       timeselect: {
-        width: 500,
-        height: 100,
+        width: 800,
+        height: 120,
       },
       map: {
-        width: 700,
-        height: 700,
+        width: 1200,
+        height: 900,
       },
     };
 

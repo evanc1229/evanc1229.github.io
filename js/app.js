@@ -43,13 +43,14 @@ console.log("DONE");
 })();
 
 var t = true;
+let N = 100;
 let button = d3.select("#navbar")
   .append("button")
-  .text("Show Analytics Table")
+  .text("Show History Side-by-Side")
   .classed("btn btn-primary mx-2", true)
 
   button.on("click", () => {
-    pages.p1.map.toggleShrink(100, 0);
+    pages.p1.map.toggleShrink(N, 0);
     // console.log("clicked:", t, pages.p1.hidden, pages.p2.hidden);
     if (t) {
       nav.activatePage("p2");
@@ -60,7 +61,7 @@ let button = d3.select("#navbar")
         .style("left", `${pages.p1.map.dimensions.right + 10}px`)
         .style("top",`${pages.p1.padding}px`);
 
-      button.text("Hide Analytics Table");
+      button.text("Hide History Side-by-Side");
       t = false;
     } else {
       pages.p2.div
@@ -72,7 +73,7 @@ let button = d3.select("#navbar")
         .call(() => {
           nav.hidePage("p2");
         });
-      button.text("Show Analytics Table");
+      button.text("Show History Side-by-Side");
       t = true;
     }
   });

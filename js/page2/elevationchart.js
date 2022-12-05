@@ -157,19 +157,20 @@ class ElevationChart extends Component {
      * @param {selection} svg
      */
     let zoom = function (svg) {
-      let extent = [
-        [0, 0],
-        [dimensions.width, dimensions.height],
-      ];
+      return;
+      // let extent = [
+      //   [0, 0],
+      //   [dimensions.width, dimensions.height],
+      // ];
 
-      svg.call(
-        d3
-          .zoom()
-          .scaleExtent([1, 60])
-          .translateExtent(extent)
-          .extent(extent)
-          .on("zoom", zoomed)
-      );
+      // svg.call(
+      //   d3
+      //     .zoom()
+      //     .scaleExtent([1, 60])
+      //     .translateExtent(extent)
+      //     .extent(extent)
+      //     .on("zoom", zoomed)
+      // );
 
       function zoomed(event) {
         xScale.range(
@@ -290,7 +291,7 @@ class ElevationChart extends Component {
       .attr("transform", `translate(${dimensions.width / 2}, ${margin.top})`)
       .style("text-anchor", "middle")
       .style("font-size", "16px")
-      .text("Number of Avalanches by Elevation per Week");
+      .text("Number of Avalanches by Depth per Week");
 
     //Legend
     let legend = chart

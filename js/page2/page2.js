@@ -34,8 +34,8 @@ class Page2 extends Page {
 
     // initialize components
     this.components = [
-      (this.depthchart = new DepthChart(this, this.data, false)),
       (this.elevationchart = new ElevationChart(this, this.data, true)),
+      (this.depthchart = new DepthChart(this, this.data, false)),
       (this.roseplot = new RosePlot(this, this.data, false)),
     ];
   }
