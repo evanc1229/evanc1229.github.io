@@ -1,4 +1,7 @@
 // Shared utility functions
+import("ramda").catch((e) => {}); // https://ramdajs.com
+
+
 
 /**
  *
@@ -27,8 +30,193 @@ export function range(x, y) {
   // stolen from: https://stackoverflow.com/questions/3895478/does-javascript-have-a-method-like-range-to-generate-a-range-within-the-supp
   if (x > y) {
     return [];
+  } else return [x, ...range(x + 1, y)];
+}
+
+/**
+ *
+ * @param {string} color : any color representation that can be parsed by d3.color
+ * @param {Callable<number[], number[]>} rgbShift
+ * @returns
+ */
+export function shiftColor(color, rgbShift) {
+  let d3Color = d3.color(color);
+  if (d3Color == null) d3Color = { r: 0, g: 0, b: 0 };
+
+  let rgb = [d3Color.r, d3Color.g, d3Color.b];
+  let rgbNew = rgbShift(rgb).map((e) => clamp(e, 1, 255));
+
+  let hexNew = "#" + rgbNew.map((e) => e.toString(16).padStart(2, 0)).join("");
+
+  // console.log({
+  //   hex_old: color,
+  //   rgb_old: rgb,
+  //   shift: rgbShift,
+  //   rgb_new: rgbNew,
+  //   hex_new: hexNew,
+  // });
+  return hexNew;
+}
+
+/**
+ *
+ * @param {object[]} arr
+ * @param {number} n : number of times to roll
+ * @returns {object[]} : array rolled forward n times
+ */
+export function roll(arr, n) {
+  let N = arr.length;
+  while (n > 0) {
+    arr = arr.map((e, i, a) => {
+      return a[(((i + 1) % N) + N) % N];
+    });
+    n--;
   }
-  else return [x, ...range(x + 1, y)];
+  return arr;
+}
+
+/**
+ *
+ * @param {number} l
+ * @param {number} u
+ * @returns {number}
+ */
+export function randClamp(l, u) {
+  return clamp(randGen(), l, u);
+}
+/**
+ *
+ * @param {number} l
+ * @param {number} u
+ * @returns {number}
+ */
+export function clamp(x, l, u) {
+  return Math.max(Math.min(x, u), l);
+}
+
+/**
+ *
+ * @param {string} s
+ * @param {string} delim
+ * @param {number} maxsplit
+ * @returns
+ */
+export function split(s, delim, maxsplit) {
+  let ss = s.split(delim);
+  return [...ss.slice(0, maxsplit), ss.slice(maxsplit).join(delim)].filter(
+    (e) => e.length
+  );
+}
+
+/**
+ *
+ * @param {string} s
+ * @param {string} delim
+ * @param {number} maxsplit
+ * @returns
+ */
+export function rsplit(s, delim, maxsplit) {
+  return split(rev(s), delim, maxsplit)
+    .map((e) => rev(e))
+    .reverse();
+}
+
+/**
+ *
+ * @param {string|object[]} t
+ * @returns
+ */
+export function rev(t) {
+  return Array.from(t).reverse().join("");
+}
+
+/**
+ *
+ * @param {object[]} pool
+ * @param {number[]} choices
+ * @returns
+ */
+export function choose(pool, choices) {
+  let a = Array(choices.length);
+  choices.forEach((i, j) => {
+    a[j] = pool[i];
+  });
+  return a;
+}
+
+/** This function wraps text in a d3 selection
+ *  Usage: `<text_selection>.call(wrapText, <parent_selection>);
+ * @param {d3.Selection} textSelection
+ * @param {d3.Selection} parentSelection
+ */
+export function wrapText(textSelection, parentSelection) {
+  // Compute the width of the text element
+  let textWidth = textSelection.node().getComputedTextLength();
+
+  // Compute the width of the parent element
+  let parentWidth = parentSelection.node().getBoundingClientRect().width;
+
+  // Select the text element and append a tspan element for each line of text
+  // textSelection
+  //   .selectAll("tspan")
+  //   .data(textSelection.text().trim().split("\n"))
+  //   .enter()
+  //   .append("tspan")
+  //   // .attr("x", parseFloat(parentSelection.attr("x")) + parseFloat(parentSelection.attr('width') / 2))
+  //   .attr("x", parentSelection.attr("x"))
+  //   // .attr("y", parentSelection.attr("y"))
+  //   .attr("dy", "1.2em")
+  //   .text(d=>d);
+
+  // If the text is wider than the parent element, set the text to wrap
+  if (textWidth > parentWidth) {
+    textSelection.call(wrap, parentWidth);
+  }
+}
+/**
+ *
+ * @param {d3.Selection} text
+ * @param {number} width
+ */
+export function wrap(text, width) {
+  text.each(function () {
+    let text = d3.select(this);
+    text.selectAll("tspan").remove();
+
+    let words = text
+      .text()
+      .split(/[^\S\n]+/)
+      .reverse();
+    let word;
+    let line = [];
+    let lineNumber = 0;
+    let lineHeight = 1.2;
+    let x = text.attr("x");
+    let y = text.attr("y");
+    let dy = 0;
+    let tspan = text
+      .text(null)
+      .append("tspan")
+      .attr("x", x)
+      .attr("y", y)
+      .attr("dy", dy + "em");
+
+    while ((word = words.pop())) {
+      line.push(word);
+      tspan.text(line.join(" "));
+      if (tspan.node().getComputedTextLength() > width) {
+        line.pop();
+        tspan.text(line.join(" "));
+        line = [word];
+        tspan = text
+          .append("tspan")
+          .attr("x", x)
+          .attr("y", y)
+          .attr("dy", ++lineNumber * lineHeight + dy + "em")
+          .text(word);
+      }
+    }
+  });
 }
 
 /**
@@ -48,7 +236,10 @@ export function preprocessData(data_raw) {
         .reverse();
 
     d.Date = new Date(d.Date) != "Invalid Date" ? new Date(d.Date) : null;
-
+    const parseFeetFromString = (x) =>
+    parseFloat(
+      x.slice(0, x.length - 1).replace(",", "") / (x.endsWith('"') ? 12 : 1)
+    );
     return {
       aid: i,
       date: d["Date"],
@@ -57,20 +248,20 @@ export function preprocessData(data_raw) {
       trigger: d["Trigger"],
       trigger_info: d["Trigger: additional info"],
       layer: d["Weak Layer"],
-      depth: d["Depth"],
-      width: d["Width"],
-      vertical: d["Vertical"],
+      depth: parseFeetFromString(d["Depth"]),
+      width: parseFeetFromString(d["Width"]),
+      vertical: parseFeetFromString(d["Vertical"]),
       aspect: d["Aspect"],
-      elevation: d["Elevation"],
+      elevation: parseFeetFromString(d["Elevation"]),
       coordinates: coordinates,
-      victim_status: [
-        d["Caught"],
-        d["Carried"],
-        d["Buried - Partly"],
-        d["Buried - Fully"],
-        d["Injured"],
-        d["Killed"],
-      ],
+      victim_status: {
+        caught: d["Caught"],
+        carried: d["Carried"],
+        buried_part: d["Buried - Partly"],
+        buried_full: d["Buried - Fully"],
+        injured: d["Injured"],
+        killed: d["Killed"],
+      },
       summary_accident: d["Accident and Rescue Summary"],
       summary_terrain: d["Terrain Summary"],
       summary_weather: d["Weather Conditions and History"],
@@ -88,7 +279,6 @@ export function preprocessData(data_raw) {
 
   return data;
 }
-
 
 /**
  * Preprocessed Data

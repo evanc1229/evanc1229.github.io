@@ -1,11 +1,10 @@
 // main map component in P1
 import * as utils from "../shared/utils.js";
 import { Component, Page } from "../shared/prototype.js";
+import { ToolTip } from "./tooltip.js";
 
-var leaflet = await import("https://cdn.skypack.dev/leaflet");
 import("leaflet").catch((e) => {});
 if (L === undefined) L = leaflet;
-
 
 class MainMap extends Component {
   /**
@@ -29,24 +28,28 @@ class MainMap extends Component {
 
     this.mapId = "map";
 
-    d3.select(".content")
-      .attr("id", "testbutton")
-      .append("button")
-      .text("Filter Map")
-      .attr("mode", "filter")
-      .attr("font-size", "16pt")
-      .on("click", (e) => {
-        let b = d3.select(e.target);
-        if (b.attr("mode") == "filter") {
-          this.page.setSelection(utils.range(800, 1200));
-          b.attr("mode", "reset").text("Reset Map");
-        } else {
-          this.page.resetSelection();
-          b.attr("mode", "filter").text("Filter Map");
-        }
-        this.update();
-      })
-      .raise();
+    this.state = {};
+
+    this.tooltips = null;
+
+    // d3.select(".content")
+    //   .attr("id", "testbutton")
+    //   .append("button")
+    //   .text("Filter Map")
+    //   .attr("mode", "filter")
+    //   .attr("font-size", "16pt")
+    //   .on("click", (e) => {
+    //     let b = d3.select(e.target);
+    //     if (b.attr("mode") == "filter") {
+    //       this.page.setSelection(utils.range(800, 1200));
+    //       b.attr("mode", "reset").text("Reset Map");
+    //     } else {
+    //       this.page.resetSelection();
+    //       b.attr("mode", "filter").text("Filter Map");
+    //     }
+    //     this.update();
+    //   })
+    //   .raise();
   }
 
   /** Converts coordinates of avalanches to geojson points
@@ -65,6 +68,7 @@ class MainMap extends Component {
         let coords = e.Coordinates.split(", ")
           .map((c) => parseFloat(c))
           .reverse();
+
         let ids = e.id;
         // this.log(e)
         return {
@@ -144,9 +148,14 @@ class MainMap extends Component {
     this.mapSvg = overlay
       .select("svg")
       .attr("pointer-events", "auto")
+      .attr("id", "map-svg")
       .classed("leaflet-zoom-hide", true);
-    this.mapSvg.append("g");
+    this.mapSvg.append("g").attr("id", "map-g");
 
+    this.nodeGroups = d3
+      .selectAll("#map-g")
+      .append("g")
+      .classed("node-groups", true);
     // convert from lat/long to a point on the leaflet map
     // const projectToMap = function (x, y) {
     //   const point = map.latLngToLayerPoint(new L.LatLng(y, x));
@@ -193,11 +202,13 @@ class MainMap extends Component {
   }
 
   update() {
+    if (this.map === undefined) {
+      this.log("ERROR: Map not initialized");
+      return;
+    }
+    // this.data = this.page.data;
     // HACK: totally random numbers
-    let rn = Math.pow(this.map.getZoom(), 2);
-
-    let rd = Math.pow(this.init.zoom, 2) / this.init.radius;
-    let r = rn / rd;
+    let r = (this.init.radius * this.map.getZoom() ** 2) / this.init.zoom ** 2;
 
     let coordMap = this.data.reduce((obj, d) => {
       let p = this.map.latLngToLayerPoint([d.coordinates[1], d.coordinates[0]]);
@@ -209,51 +220,88 @@ class MainMap extends Component {
       return obj;
     }, {});
 
-    const nodeMouseOver = (e) => {
-      this.log(e.id);
-      let c = d3.select(e.target);
-      c.transition().duration("150").attr("r", 20);
+    // const nodeMouseOver = (e) => {
+    //   this.log(e.id);
+    //   let c = d3.select(e.target);
+    //   c.transition().duration("150").attr("r", 20);
 
-      // c.raise()
-    };
+    //   // c.raise()
+    // };
 
-    const nodeMouseOut = (e) => {
-      //reverse the action based on when we mouse off the the circle
-      let c = d3.select(e.target);
-      c.transition().duration("150").attr("r", c.attr("fixed-r"));
-    };
+    // const nodeMouseOut = (e) => {
+    //   //reverse the action based on when we mouse off the the circle
+    //   let c = d3.select(e.target);
+    //   c.transition().duration("150").attr("r", c.attr("fixed-r"));
+    // };
 
-    this.incidentNodes = this.mapSvg
-      .select("g")
+    // console.log(this.data)
+
+    // .selectAll("g")
+    // .data(this.data, (d) => d.aid)
+    // .join('g');
+
+    this.nodes = this.mapSvg
+      .select("g.node-groups")
       .selectAll("circle")
       .data(this.data, (d) => d.aid)
       .join(
         (enter) => {
-          return enter
-            .append("circle")
-            .attr("cx", (d) => coordMap[d.aid].x)
-            .attr("cy", (d) => coordMap[d.aid].y)
-            .attr("fixed-r", r)
-            .attr("r", r)
-            .attr("stroke", "black")
-            .attr("stroke-width", 0.3)
-            .attr("fill", "crimson")
-            .classed("single-avalanche", true)
-            .on("mouseover", nodeMouseOver)
-            .on("mouseout", nodeMouseOut);
+          return (
+            enter
+              // .append("g")
+              // .attr("id", (d) => `gp-node${d.aid}`)
+              // .classed("gp-node", true)
+              .append("circle")
+              .attr("id", (d) => `node${d.aid}`)
+              .attr("cx", (d) => coordMap[d.aid].x)
+              .attr("cy", (d) => coordMap[d.aid].y)
+              .attr("fixed-r", r)
+              .attr("r", r)
+              .attr("stroke", "black")
+              .attr("stroke-width", 0.3)
+              .attr("fill", "#dc3545")
+              .attr("originalFill", "#dc3545")
+              .classed("node", true)
+          );
+          // .on("mouseover", nodeMouseOver)
+          // .on("mouseout", nodeMouseOut);
         },
         (update) => {
-          return update
-            .attr("fill", "blue")
-            .attr("cx", (d) => coordMap[d.aid].x)
-            .attr("cy", (d) => coordMap[d.aid].y)
-            .attr("fixed-r", r)
-            .attr("r", r);
+          return (
+            update
+              // .selectAll("circle")
+              .attr("fill", "blue")
+              .attr("cx", (d) => coordMap[d.aid].x)
+              .attr("cy", (d) => coordMap[d.aid].y)
+              .attr("fixed-r", r)
+              .attr("r", r)
+          );
         },
         (exit) => {
           return exit.transition().duration(500).attr("fill", "grey").remove();
         }
       );
+
+    if (this.tooltips == null) {
+      this.tooltips = new ToolTip(this);
+      // this.tooltips.init_tooltips(this.nodes);
+      this.tooltips.render(this.mapSvg.select("#map-g"));
+    }
+
+    this.nodes
+      .on("click", (e) => {
+        this.tooltips?.togglePin();
+      })
+      .on("mouseover", (e) => {
+        let d = e.target.__data__;
+        this.page.setFocus(d.aid);
+        this.tooltips?.setLoc(coordMap[d.aid]);
+        this.tooltips?.update();
+      })
+      .on("mouseout", (e) => {
+        this.page.setFocus(null);
+        this.tooltips?.update();
+      });
   }
 
   /** Log current state of the map to the console
