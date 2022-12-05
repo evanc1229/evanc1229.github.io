@@ -6,7 +6,7 @@ import helpButton from "./shared/help.js";
 import * as utils from "./shared/utils.js";
 
 // Initialize each of pages 1, 2, and 3 with dataset
-const data_raw = await utils.loadData();
+const data_raw = (await utils.loadData())//.slice(0, 1000);
 
 const data = utils.preprocessData(data_raw);
 
@@ -36,10 +36,12 @@ window.globalState = globalState;
 console.log("DONE");
 
 var t = true;
-d3.select("#navbar")
+let button = d3.select("#navbar")
   .append("button")
-  .text("debug")
-  .on("click", () => {
+  .text("Show Analytics Table")
+  .classed("btn btn-primary mx-2", true)
+
+  button.on("click", () => {
     pages.p1.map.toggleShrink(100, 0);
     // console.log("clicked:", t, pages.p1.hidden, pages.p2.hidden);
     if (t) {
@@ -50,6 +52,8 @@ d3.select("#navbar")
         .duration(500)
         .style("left", `${pages.p1.map.dimensions.right + 10}px`)
         .style("top",`${pages.p1.map.dimensions.top}px`);
+
+      button.text("Hide Analytics Table");
       t = false;
     } else {
       pages.p2.div
@@ -61,6 +65,7 @@ d3.select("#navbar")
         .call(() => {
           nav.hidePage("p2");
         });
+      button.text("Show Analytics Table");
       t = true;
     }
   });

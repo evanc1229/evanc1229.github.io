@@ -22,8 +22,9 @@ class MainMap extends Component {
     this.init = {
       view: [40.593, -110.984],
       zoom: 7,
-      radius: 2.6,
+      radius: 3,
       maxZoom: 15,
+      opacity: .8
     };
 
     this.mapId = "map";
@@ -136,7 +137,7 @@ class MainMap extends Component {
         .style("width", `${this.dimensions.width}px`)
         .style("height", `${this.dimensions.height}px`);
       this.shrunk = false;
-      
+
     } else {
       this.mapDiv
         .transition()
@@ -176,39 +177,10 @@ class MainMap extends Component {
       .selectAll("#map-g")
       .append("g")
       .classed("node-groups", true);
-    // convert from lat/long to a point on the leaflet map
-    // const projectToMap = function (x, y) {
-    //   const point = map.latLngToLayerPoint(new L.LatLng(y, x));
-    //   return this.stream.point(point.x, point.y);
-    // };
-
-    // // define a d3 projection
-    // const projectToMapD3 = d3.geoTransform({ point: projectToMap });
-    // const pathCreator = d3.geoPath().projection(projectToMapD3);
-
-    // let incidentPoints = this.convertPoints();
-
-    // let areas = d3.filter(
-    //   this.data.map.features,
-    //   (d) => d.geometry.type != "Point"
-    // );
-
-    // const areaPaths = g
-    //   .selectAll("path")
-    //   .data(areas)
-    //   .enter()
-    //   .append("path")
-    //   .attr("fill-opacity", 0.3)
-    //   .attr("stroke", "black")
-    //   .attr("stroke-width", 2.5);
-    // this.update();
 
     // update circle and area positions on zoom
     const onZoom = () => {
       this.update();
-      // this.logMapState();
-      // this.calcCircleAttrs(this.map);
-      // areaPaths.attr("d", pathCreator);
     };
 
     const onDrag = () => {
@@ -281,16 +253,13 @@ class MainMap extends Component {
               .attr("stroke-width", 0.3)
               .attr("fill", "#dc3545")
               .attr("originalFill", "#dc3545")
+              .attr('opacity', this.init.opacity)
               .classed("node", true)
           );
-          // .on("mouseover", nodeMouseOver)
-          // .on("mouseout", nodeMouseOut);
         },
         (update) => {
           return (
             update
-              // .selectAll("circle")
-              .attr("fill", "blue")
               .attr("cx", (d) => coordMap[d.aid].x)
               .attr("cy", (d) => coordMap[d.aid].y)
               .attr("fixed-r", r)

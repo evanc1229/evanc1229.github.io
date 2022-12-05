@@ -72,7 +72,6 @@ export class Page {
   }
 
   show() {
-    console.log(this.name, "SHOW")
     if (this.hidden) {
       this.hidden = false;
       this.div
@@ -82,7 +81,6 @@ export class Page {
   }
 
   hide() {
-    console.log(this.name, "HIDE")
     if (!this.hidden) {
       this.hidden = true;
       this.div
@@ -109,6 +107,7 @@ export class Page {
           .style("height", `${cDims.height}px`)
           .style("left", `${x}px`)
           .style("top", `${y}px`)
+          .style("position", "absolute")
           .classed("my-2", true)
       );
       y += cDims.height + this.padding;
