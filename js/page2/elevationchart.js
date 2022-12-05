@@ -38,9 +38,6 @@ class ElevationChart extends Component {
             .append("g");
            
         
-        //let parseDate = d3.timeParse("%-m/%-d/%-Y");
-        let parseFeetFromString = x => parseFloat(x.slice(0, x.length - 1).replace(',', '') / (x.endsWith('"') ? 12 : 1));
-    
         let dateFormater = d3.timeFormat("%Y");
         let x = d3.scaleTime().range([50, this.dimensions.width]);
         let y = d3.scaleLinear().range([this.dimensions.height, 50]);
@@ -50,8 +47,6 @@ class ElevationChart extends Component {
     
         let line = d3.line().x(function(d) {return x(d.date);})
                             .y(function(d){return(y(d.elevation));});
-        
-        data.forEach(function(d) {d.date = d.date; d.elevation = parseFeetFromString(d.elevation);});
         
         data.sort(function(a,b){return a.date - b.date;});
         
