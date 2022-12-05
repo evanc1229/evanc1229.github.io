@@ -14,8 +14,6 @@ class DepthChart extends Component {
      */
     constructor(page, data, verbose = false) {
         super(page, data, verbose);
-        this.data = data;
-
         this.log("Init DepthChart");
 
         // Data processing
@@ -135,7 +133,7 @@ class DepthChart extends Component {
             .selectAll("rect")
             .data(this.dateIndexedData)
             .join("rect")
-            .attr("x", d => xBarScale(d.date))
+            .attr("x", d => xScale(d.date))
             .attr("y", d => yScale(d.depth))
             .attr("width", xBarScale.bandwidth())
             .attr("height", d => yScale(0) - yScale(d.depth))
@@ -162,7 +160,7 @@ class DepthChart extends Component {
             .append("text")
             .attr("transform", `translate(${dimensions.width / 2}, ${dimensions.height})`)
             .style("text-anchor", "middle")
-            .text("Year");
+            .text("Date");
 
         chart
             .append("text")
