@@ -28,8 +28,7 @@ class ElevationChart extends Component {
     this.dateIndexedData = this.data;
 
     //Convert string elevation to number
-    let parseFeetFromString = x => parseFloat(x.substring(0, x.length - 1).replace(',', '') / (x.endsWith('"') ? 12 : 1));
-    this.dateIndexedData = this.data.forEach((d) => d.elevation = parseFeetFromString(d.elevation));
+    this.dateIndexedData = this.data;
 
     this.dateIndexedData = Array.from(d3.rollup(this.data, v => {
       let totalNumberOfAvalanches = 0;
@@ -87,8 +86,7 @@ class ElevationChart extends Component {
     super.render(div);
     this.log("Render ElevationChart");
     let margin = { top: 20, right: 20, bottom: 30, left: 50 };
-    let dimensions = this.page.dimensions.elevationchart;
-    let location = this.page.positions.elevationchart;
+    let dimensions = this.page.config.elevationchart;
 
     //Creating scales for bar chart
     let xScale = d3.scaleTime()
@@ -161,7 +159,7 @@ class ElevationChart extends Component {
     let chart = svg
       .append("g")
       .attr('id', 'elevationchart')
-      .attr("transform", `translate(${location.x}, ${location.y})`);
+      .attr("transform", 'translate(0, 0)');
 
     let allAvalanchesChart = chart
       .append('svg')

@@ -17,8 +17,7 @@ class DepthChart extends Component {
         this.log("Init DepthChart");
 
         // Data processing
-        let parseFeetFromString = x => parseFloat(x.slice(0, x.length - 1).replace(',', '') / (x.endsWith('"') ? 12 : 1));
-        this.dateIndexedData = this.data.forEach((d) => d.depth = parseFeetFromString(d.depth));
+        this.dateIndexedData = this.data;
 
         this.dateIndexedData = Array.from(d3.rollup(this.data, v => {
             let total = 0;
@@ -49,9 +48,7 @@ class DepthChart extends Component {
         super.render(div)
         this.log("Render DepthChart");
         let margin = { top: 20, right: 20, bottom: 30, left: 50 };
-        let dimensions = this.page.dimensions.depthchart;
-        let location = this.page.positions.depthchart;
-        this.log(dimensions, location);
+        let dimensions = this.page.config.depthchart;
 
         //Creating scales for bar chart
         let xScale = d3.scaleTime()
@@ -123,7 +120,7 @@ class DepthChart extends Component {
         let chart = svg
             .append("g")
             .attr('id', 'depthchart')
-            .attr("transform", `translate(${location.x}, ${location.y})`);
+            .attr("transform", 'translate(0, 0)');
 
         chart
             .append('svg')
