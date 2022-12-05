@@ -11,9 +11,9 @@ class Page1 extends Page {
    *
    * @param {Array<utils.AvalancheData>} data
    */
-  constructor(data) {
+  constructor(data, name) {
     console.log("Init Page 1");
-    super(data);
+    super(data, name);
 
     this.padding = 10;
 
