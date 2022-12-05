@@ -146,8 +146,8 @@ class RosePlot extends Component {
         .append("circle")
         .attr("class", "gridCircle")
         .attr("r", function (d, i) { return radius / cfg.levels * d; })
-        .style("fill", "#CDCDCD")
-        .style("stroke", "#CDCDCD")
+        .style("fill", "#3581D8")
+        .style("stroke", "#3581D8")
         .style("fill-opacity", cfg.opacityCircles)
         .style("filter" , "url(#glow)");
         
@@ -213,7 +213,7 @@ class RosePlot extends Component {
         .append("path")
         .attr("class", "radarArea")
         .attr("d", radarArea.innerRadius(0).outerRadius(d => rScale(d.value))(newData))
-        .style("fill", function(d,i) { return cfg.color(i); })
+        .style("fill", "#E93F51")//function(d,i) { return cfg.color(i); })
         .style("fill-opacity", cfg.opacityArea)
         .on('mouseover', function (d, i) {
           d3.selectAll(".radarArea")

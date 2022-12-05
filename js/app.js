@@ -18,9 +18,10 @@ const pages = {
 const nav = new Nav(pages);
 nav.activatePage("p1");
 
-(async () => {
-  R.forEachObjIndexed((page, name) => page.render(), pages);
-})();
+pages.p1.render();
+// (async () => {
+//   R.forEachObjIndexed((page, name) => page.render(), pages);
+// })();
 
 var globalState = {
   data: data,
@@ -34,6 +35,12 @@ var globalState = {
 window.globalState = globalState;
 
 console.log("DONE");
+
+
+(async () => {
+  pages.p2.render();
+  pages.p3.render();
+})();
 
 var t = true;
 let button = d3.select("#navbar")
@@ -51,7 +58,7 @@ let button = d3.select("#navbar")
         .transition()
         .duration(500)
         .style("left", `${pages.p1.map.dimensions.right + 10}px`)
-        .style("top",`${pages.p1.map.dimensions.top}px`);
+        .style("top",`${pages.p1.padding}px`);
 
       button.text("Hide Analytics Table");
       t = false;
@@ -60,7 +67,7 @@ let button = d3.select("#navbar")
         .transition()
         .duration(500)
         .style("left", `${pages.p2.padding}px`)
-        .style("top", `${pages.p2.padding}px`)
+        .style("top", `${pages.p2.padding+40}px`)
         .delay(500)
         .call(() => {
           nav.hidePage("p2");
@@ -69,3 +76,4 @@ let button = d3.select("#navbar")
       t = true;
     }
   });
+

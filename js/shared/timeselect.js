@@ -201,8 +201,8 @@ class TimeSelect extends Component {
             .attr('y', d => yScale(d.count) - 1)
             .attr('width', xBarScale.bandwidth())
             .attr('height', d => this.dimensions.height - this.margin_bottom - yScale(d.count))
-            .attr('fill', 'lightblue')
-            .attr('stroke', 'lightblue');
+            .attr('fill', '#3581D8')
+            .attr('stroke', '#3581D8');
 
         //Adding a brush to the chart
         let brusher = d3.brushX()
