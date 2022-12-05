@@ -103,8 +103,5 @@ class Page1 extends Page {
     this.elementIds = ["timeselect", "map-container"];
   }
 
-  hide() {
-    this.elementIds.forEach((id) => document.getElementById(id).remove());
-  }
 }
 export { Page1 };

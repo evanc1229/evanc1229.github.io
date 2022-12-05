@@ -16,7 +16,7 @@ const pages = {
   p3: new Page3(data),
 };
 
-pages.p1.render();
+R.forEachObjIndexed((page,name)=>page.render(), pages)
 
 var globalState = {
   data: data,
@@ -28,7 +28,7 @@ const swapPage = (p) => {
   if (globalState.activePage != p.target.id){
     let oldPageId = globalState.activePage;
     pages[globalState.activePage].hide();
-    pages[p.target.id].render();
+    pages[p.target.id].show();
     globalState.activePage = p.target.id;
 
     document.querySelector(`#${oldPageId}`).classList.remove('active')

@@ -116,8 +116,5 @@ class Page2 extends Page {
     this.elementIds = ["depthchart", "elevationchart", "histogram", "roseplot"];
   }
 
-  hide() {
-    this.elementIds.forEach((id) => document.getElementById(id).remove());
-  }
 }
 export { Page2 };

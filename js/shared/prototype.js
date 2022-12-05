@@ -65,6 +65,18 @@ export class Page {
   getFocus() {
     return this.aidFocus;
   }
+
+  show() {
+    this.components.forEach((c) => c.show());
+  }
+
+  hide() {
+    this.components.forEach((c) => c.hide());
+  }
+
+  render() {
+    this.components.forEach((c) => c.render());
+  }
 }
 
 /**
@@ -122,6 +134,18 @@ export class Component {
   /** Placeholder for updating component when data selection has changed
    */
   update() {}
+
+  /** Default way for a component to hide itself
+   */
+  hide() {
+    this.div?.style("display", "none");
+  }
+
+  /** Default way for a component to show itself
+   */
+  show() {
+    this.div?.style("display", "block");
+  }
 
   /** Transforms the selection of data by applying `func` to each data point
    *  Calls `update` on component
