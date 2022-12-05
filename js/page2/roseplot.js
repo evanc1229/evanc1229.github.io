@@ -270,6 +270,7 @@ class RosePlot extends Component {
         .attr("cx", function (d, i) { return rScale(d.value) * Math.cos(angleSlice * i - Math.PI / 2); })
         .attr("cy", function (d, i) { return rScale(d.value) * Math.sin(angleSlice * i - Math.PI / 2); })
         .style("fill", "none")
+        .style("cursor", "pointer")
         .style("pointer-events", "all")
         .on("mouseover", function (e, d) {
           let newX = parseFloat(d3.select(this).attr('cx')) - 10;
