@@ -53,7 +53,7 @@ class Page1 extends Page {
     this.aidSelection = this.data.map((d) => d.aid);
     this.aidFocus = null;
 
-    this.timeselect = this.tooltip = this.map = new Component(this, this.data);
+    this.timeselect = this.map = new Component(this, this.data);
 
     // initialize components
     this.timeselect = new TimeSelect(this, this.data, false);

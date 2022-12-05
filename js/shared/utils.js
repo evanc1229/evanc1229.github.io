@@ -1,4 +1,7 @@
 // Shared utility functions
+import("ramda").catch((e) => {}); // https://ramdajs.com
+
+
 
 /**
  *
@@ -233,7 +236,10 @@ export function preprocessData(data_raw) {
         .reverse();
 
     d.Date = new Date(d.Date) != "Invalid Date" ? new Date(d.Date) : null;
-
+    const parseFeetFromString = (x) =>
+    parseFloat(
+      x.slice(0, x.length - 1).replace(",", "") / (x.endsWith('"') ? 12 : 1)
+    );
     return {
       aid: i,
       date: d["Date"],
@@ -242,11 +248,11 @@ export function preprocessData(data_raw) {
       trigger: d["Trigger"],
       trigger_info: d["Trigger: additional info"],
       layer: d["Weak Layer"],
-      depth: d["Depth"],
-      width: d["Width"],
-      vertical: d["Vertical"],
+      depth: parseFeetFromString(d["Depth"]),
+      width: parseFeetFromString(d["Width"]),
+      vertical: parseFeetFromString(d["Vertical"]),
       aspect: d["Aspect"],
-      elevation: d["Elevation"],
+      elevation: parseFeetFromString(d["Elevation"]),
       coordinates: coordinates,
       victim_status: {
         caught: d["Caught"],

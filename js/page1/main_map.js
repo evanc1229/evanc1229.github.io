@@ -3,7 +3,6 @@ import * as utils from "../shared/utils.js";
 import { Component, Page } from "../shared/prototype.js";
 import { ToolTip } from "./tooltip.js";
 
-var leaflet = await import("https://cdn.skypack.dev/leaflet");
 import("leaflet").catch((e) => {});
 if (L === undefined) L = leaflet;
 
@@ -203,6 +202,10 @@ class MainMap extends Component {
   }
 
   update() {
+    if (this.map === undefined) {
+      this.log("ERROR: Map not initialized");
+      return;
+    }
     // this.data = this.page.data;
     // HACK: totally random numbers
     let r = (this.init.radius * this.map.getZoom() ** 2) / this.init.zoom ** 2;
@@ -287,7 +290,7 @@ class MainMap extends Component {
 
     this.nodes
       .on("click", (e) => {
-        this.tooltips?.toggle_pin();
+        this.tooltips?.togglePin();
       })
       .on("mouseover", (e) => {
         let d = e.target.__data__;
