@@ -19,7 +19,7 @@ class Page1 extends Page {
 
     this.dimensions = {
       timeselect: {
-        width: 1600,
+        width: 500,
         height: 100,
       },
       map: {
